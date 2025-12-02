@@ -6,9 +6,6 @@ import {
   CreditCard,
   DollarSign,
   Settings,
-  Building2,
-  BarChart3,
-  FileText,
   Bell,
   Shield,
   ChevronRight,
@@ -36,13 +33,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
           path: "/admin/subscriptions",
         },
         { name: "Payments", icon: DollarSign, path: "/admin/payments" },
-      ],
-    },
-    {
-      title: "System",
-      items: [
-        { name: "Notifications", icon: Bell, path: "/admin/notifications" },
-        { name: "Settings", icon: Settings, path: "/admin/settings" },
       ],
     },
   ];

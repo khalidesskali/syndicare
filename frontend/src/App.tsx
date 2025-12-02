@@ -8,6 +8,8 @@ import ResidentDashboard from "./pages/ResidentDashboard";
 import RoleRedirect from "./components/RoleRedirect";
 import { useAuth } from "./context/AuthContext";
 import Syndics from "./pages/admin/Synidc";
+import SubscriptionPlans from "./pages/admin/SubscriptionPlans";
+import Payments from "./pages/admin/Payments";
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -35,6 +37,26 @@ function App() {
           <ProtectedRoute>
             <RoleBasedRoute allowedRoles={["ADMIN"]}>
               <Syndics />
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/subscriptions"
+        element={
+          <ProtectedRoute>
+            <RoleBasedRoute allowedRoles={["ADMIN"]}>
+              <SubscriptionPlans />
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/payments"
+        element={
+          <ProtectedRoute>
+            <RoleBasedRoute allowedRoles={["ADMIN"]}>
+              <Payments />
             </RoleBasedRoute>
           </ProtectedRoute>
         }
