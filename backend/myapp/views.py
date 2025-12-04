@@ -448,37 +448,8 @@ class SyndicAdminViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         """
         Partially update syndic account
-        PATCH /api/admin/syndics/{id}/
-        """
-        kwargs['partial'] = True
-        return self.update(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        """
-        Deactivate a syndic account (soft delete)
-        DELETE /api/admin/syndics/{id}/
-        """
-        syndic = self.get_object()
         
-        # Check if syndic has active buildings
-        if Immeuble.objects.filter(syndic=syndic).exists():
-            return Response({
-                'success': False,
-                'message': 'Cannot delete syndic with existing buildings. Please remove all buildings first.'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Soft delete
-        syndic.is_active = False
-        syndic.save()
-        
-        return Response({
-            'success': True,
-            'message': 'Syndic account deactivated successfully'
-        }, status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=['post'])
-    def activate(self, request, pk=None):
-        """
+        # Update profile if data provided
         Activate a syndic account
         POST /api/admin/syndics/{id}/activate/
         """
@@ -495,19 +466,42 @@ class SyndicAdminViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def deactivate(self, request, pk=None):
         """
-        Deactivate a syndic account
+        Delete a syndic account permanently
         POST /api/admin/syndics/{id}/deactivate/
         """
         syndic = self.get_object()
-        syndic.is_active = False
-        syndic.save()
+        
+        # Check if syndic has active buildings
+        if Immeuble.objects.filter(syndic=syndic).exists():
+            return Response({
+                'success': False,
+                'message': 'Cannot delete syndic with existing buildings. Please remove all buildings first.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if syndic has active subscription
+        try:
+            if hasattr(syndic, 'syndic_profile') and hasattr(syndic.syndic_profile, 'subscription'):
+                subscription = syndic.syndic_profile.subscription
+                if subscription.status == 'ACTIVE':
+                    return Response({
+                        'success': False,
+                        'message': 'Cannot delete syndic with active subscription. Cancel subscription first.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            pass
+        
+        # Store info before deletion
+        email = syndic.email
+        company_name = syndic.syndic_profile.company_name if hasattr(syndic, 'syndic_profile') else ''
+        
+        # Delete the syndic (this will cascade delete the profile)
+        syndic.delete()
         
         return Response({
             'success': True,
-            'message': 'Syndic account deactivated successfully',
-            'data': self.get_serializer(syndic).data
+            'message': f'Syndic account {email} ({company_name}) deleted successfully'
         })
-
+    
     @action(detail=True, methods=['post'])
     def assign_subscription(self, request, pk=None):
         """

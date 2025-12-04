@@ -18,6 +18,7 @@ import type { SyndicFilters } from "@/types/syndics";
 import { Button } from "@/components/ui/button";
 import AddSyndicModal from "@/components/syndic/AddSyndicModal";
 import EditSyndicModal from "@/components/syndic/EditSyndicModal";
+import DeleteSyndicModal from "@/components/syndic/DeleteSyndicModal";
 
 const Syndics: React.FC = () => {
   const [filters, setFilters] = useState<Partial<SyndicFilters>>({
@@ -29,17 +30,10 @@ const Syndics: React.FC = () => {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [selectedSyndic, setSelectedSyndic] = useState<any>(null);
 
-  const {
-    syndics,
-    loading,
-    error,
-    stats,
-    pagination,
-    fetchSyndics,
-    deleteSyndic,
-  } = useSyndics();
+  const { syndics, loading, error, pagination, fetchSyndics } = useSyndics();
 
   useEffect(() => {
     fetchSyndics(filters);
@@ -64,6 +58,11 @@ const Syndics: React.FC = () => {
   const handleEdit = (syndic: any) => {
     setSelectedSyndic(syndic);
     setIsEditModalOpen(true);
+  };
+
+  const handleDelete = (syndic: any) => {
+    setSelectedSyndic(syndic);
+    setIsDeleteModalOpen(true);
   };
 
   // Format date to a more readable format
@@ -133,9 +132,7 @@ const Syndics: React.FC = () => {
               <Users className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">
-                {stats?.total || 0}
-              </p>
+              <p className="text-2xl font-bold text-slate-900">0</p>
               <p className="text-sm text-slate-600">Total Syndics</p>
             </div>
           </div>
@@ -147,9 +144,7 @@ const Syndics: React.FC = () => {
               <CheckCircle2 className="h-6 w-6 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">
-                {stats?.active || 0}
-              </p>
+              <p className="text-2xl font-bold text-slate-900">0</p>
               <p className="text-sm text-slate-600">Active</p>
             </div>
           </div>
@@ -161,9 +156,7 @@ const Syndics: React.FC = () => {
               <Clock className="h-6 w-6 text-orange-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">
-                {stats?.pending || 0}
-              </p>
+              <p className="text-2xl font-bold text-slate-900">0</p>
               <p className="text-sm text-slate-600">Pending</p>
             </div>
           </div>
@@ -175,9 +168,7 @@ const Syndics: React.FC = () => {
               <CheckCircle2 className="h-6 w-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">
-                {stats?.with_valid_subscription || 0}
-              </p>
+              <p className="text-2xl font-bold text-slate-900">0</p>
               <p className="text-sm text-slate-600">With Valid Subscription</p>
             </div>
           </div>
@@ -349,15 +340,7 @@ const Syndics: React.FC = () => {
                           <Edit className="h-5 w-5" />
                         </button>
                         <button
-                          onClick={() => {
-                            if (
-                              window.confirm(
-                                "Are you sure you want to delete this syndic?"
-                              )
-                            ) {
-                              deleteSyndic(syndic.id);
-                            }
-                          }}
+                          onClick={() => handleDelete(syndic)}
                           className="text-red-600 hover:text-red-900 p-1.5 rounded-full hover:bg-red-50"
                           title="Delete"
                         >
@@ -452,6 +435,11 @@ const Syndics: React.FC = () => {
         <EditSyndicModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
+          syndic={selectedSyndic}
+        />
+        <DeleteSyndicModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
           syndic={selectedSyndic}
         />
       </div>

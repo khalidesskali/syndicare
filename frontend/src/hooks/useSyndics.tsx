@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import type {
   Syndic,
   SyndicFilters,
-  SyndicStats,
+  // SyndicStats,
   SyndicFormData,
 } from "../types/syndics";
 import axiosInstance from "../api/axios";
@@ -15,7 +15,7 @@ const useSyndics = () => {
   const [syndics, setSyndics] = useState<Syndic[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState<SyndicStats | null>(null);
+  // const [stats, setStats] = useState<SyndicStats | null>(null);
   const [pagination, setPagination] = useState({
     page: 1,
     page_size: 10,
@@ -132,7 +132,8 @@ const useSyndics = () => {
     if (!isAuthenticated) return false;
 
     try {
-      await axiosInstance.delete(`${API_URL}/admin/syndics/${id}/`);
+      const res = await axiosInstance.delete(`${API_URL}/admin/syndics/${id}/`);
+      console.log(res);
       setSyndics(syndics.filter((s) => s.id !== id));
       console.log("user deleted");
       return true;
@@ -174,7 +175,7 @@ const useSyndics = () => {
     syndics,
     loading,
     error,
-    stats,
+    // stats,
     pagination,
     fetchSyndics,
     getSyndic,
