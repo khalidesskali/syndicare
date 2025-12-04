@@ -89,16 +89,27 @@ class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def post(self, request):
-        serializer = LogoutSerializer(data=request.data)
-        
-        if serializer.is_valid():
-            serializer.save()
+        try:
+            refresh_token = request.data.get('refresh')
+            if not refresh_token:
+                return Response(
+                    {'error': 'Refresh token is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Blacklist the refresh token
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            
             return Response(
                 {'message': 'Logged out successfully.'},
                 status=status.HTTP_205_RESET_CONTENT
             )
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {'error': 'Invalid or expired refresh token'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class UserProfileView(APIView):
@@ -176,6 +187,41 @@ def resident_dashboard(request):
         'message': 'Welcome to Resident Dashboard',
         'user': UserSerializer(request.user).data
     })
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def verify_token(request):
+    """
+    Verify token validity and return token info
+    """
+    try:
+        # Get the token from the Authorization header
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+        if auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+            
+            # Try to decode the token to get its payload
+            from rest_framework_simplejwt.tokens import AccessToken
+            access_token = AccessToken(token)
+            
+            return Response({
+                'valid': True,
+                'token_type': 'access',
+                'exp': access_token['exp'],
+                'user_id': access_token['user_id'],
+                'user': UserSerializer(request.user).data
+            })
+        else:
+            return Response(
+                {'valid': False, 'error': 'No valid token provided'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+    except Exception as e:
+        return Response(
+            {'valid': False, 'error': str(e)},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
 
 
 @api_view(['GET'])

@@ -25,6 +25,7 @@ urlpatterns = [
     path('auth/register/', views.RegisterView.as_view(), name='register'),
     path('auth/change-password/', views.ChangePasswordView.as_view(), name='change_password'),
     path('auth/check/', views.check_auth, name='check_auth'),
+    path('auth/verify/', views.verify_token, name='verify_token'),
     path('auth/profile/', views.UserProfileView.as_view(), name='user_profile'),
     
     # Role-specific dashboards

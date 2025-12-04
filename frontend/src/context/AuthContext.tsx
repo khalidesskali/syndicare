@@ -10,7 +10,6 @@ import type {
   PasswordChangeResult,
   ApiError,
 } from "../types/auth";
-import axiosInstance from "@/api/axios";
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -20,14 +19,33 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(() => {
-    return localStorage.getItem("access_token") || null;
-  });
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | Record<string, string[]> | null>(
     null
   );
+
+  // Listen for token refresh events
+  useEffect(() => {
+    const handleTokenRefreshed = () => {
+      // Token is updated in localStorage by the axios interceptor
+      // No need to update state here since we're not tracking accessToken state
+    };
+
+    const handleAuthError = () => {
+      setUser(null);
+      setIsAuthenticated(false);
+      setLoading(false);
+    };
+
+    window.addEventListener("tokenRefreshed", handleTokenRefreshed);
+    window.addEventListener("authError", handleAuthError);
+
+    return () => {
+      window.removeEventListener("tokenRefreshed", handleTokenRefreshed);
+      window.removeEventListener("authError", handleAuthError);
+    };
+  }, []);
 
   // Initialize auth state from localStorage
   useEffect(() => {
@@ -64,21 +82,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initAuth();
   }, []);
 
-  useEffect(() => {
-    const requestInterceptor = axiosInstance.interceptors.request.use(
-      (config) => {
-        if (accessToken && !config.headers.Authorization) {
-          config.headers.Authorization = `Bearer ${localStorage.getItem(
-            "access_token"
-          )}`;
-        }
-        return config;
-      }
-    );
-
-    return () => axiosInstance.interceptors.request.eject(requestInterceptor);
-  }, [accessToken]);
-
   // Login function
   const login = async (
     email: string,
@@ -99,7 +102,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem("refresh_token", data.refresh);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      setAccessToken(data.access);
       setUser(data.user);
       setIsAuthenticated(true);
       setLoading(false);

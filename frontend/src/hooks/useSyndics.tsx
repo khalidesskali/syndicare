@@ -60,18 +60,18 @@ const useSyndics = () => {
     [isAuthenticated]
   );
 
-  const fetchSyndicStats = useCallback(async () => {
-    if (!isAuthenticated) return;
+  // const fetchSyndicStats = useCallback(async () => {
+  //   if (!isAuthenticated) return;
 
-    try {
-      const response = await axiosInstance.get(
-        `${API_URL}/admin/syndics/stats/`
-      );
-      setStats(response.data);
-    } catch (err) {
-      console.error("Error fetching syndic stats:", err);
-    }
-  }, [isAuthenticated]);
+  //   try {
+  //     const response = await axiosInstance.get(
+  //       `${API_URL}/admin/syndics/stats/`
+  //     );
+  //     setStats(response.data);
+  //   } catch (err) {
+  //     console.error("Error fetching syndic stats:", err);
+  //   }
+  // }, [isAuthenticated]);
 
   const getSyndic = useCallback(
     async (id: number): Promise<Syndic | null> => {
@@ -134,6 +134,7 @@ const useSyndics = () => {
     try {
       await axiosInstance.delete(`${API_URL}/admin/syndics/${id}/`);
       setSyndics(syndics.filter((s) => s.id !== id));
+      console.log("user deleted");
       return true;
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to delete syndic");
@@ -165,9 +166,9 @@ const useSyndics = () => {
   useEffect(() => {
     if (isAuthenticated) {
       fetchSyndics();
-      fetchSyndicStats();
+      // fetchSyndicStats();
     }
-  }, [isAuthenticated, fetchSyndics, fetchSyndicStats]);
+  }, [isAuthenticated, fetchSyndics]);
 
   return {
     syndics,

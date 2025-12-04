@@ -1,10 +1,5 @@
 import axiosInstance from "./axios";
-import type {
-  LoginResponse,
-  User,
-  CheckAuthResponse,
-  RefreshTokenResponse,
-} from "../types/auth";
+import type { LoginResponse, User, CheckAuthResponse } from "../types/auth";
 
 const authAPI = {
   // Login
@@ -61,15 +56,20 @@ const authAPI = {
     return response.data;
   },
 
-  // Refresh token
-  refreshToken: async (refreshToken: string): Promise<RefreshTokenResponse> => {
-    const response = await axiosInstance.post<RefreshTokenResponse>(
-      "/auth/refresh/",
-      {
-        refresh: refreshToken,
-      }
-    );
-    return response.data;
+  // Verify token
+  verifyToken: async (): Promise<{
+    valid: boolean;
+    user?: User;
+    error?: string;
+  }> => {
+    try {
+      const response = await axiosInstance.get<{ valid: boolean; user: User }>(
+        "/auth/verify/"
+      );
+      return response.data;
+    } catch (error) {
+      return { valid: false, error: "Token verification failed" };
+    }
   },
 };
 
