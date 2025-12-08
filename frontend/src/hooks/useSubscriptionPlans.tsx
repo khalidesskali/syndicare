@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from "react";
+import axiosInstance from "../api/axios";
+
+const API_BASE_URL = "http://localhost:8000/api";
 
 interface Plan {
-  id: string;
+  id: number;
   name: string;
   description: string;
   price: number;
-  currency: string;
-  billingCycle: "monthly" | "yearly";
-  features: string[];
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  duration_days: number;
+  max_buildings: number;
+  max_apartments: number;
+  is_active: boolean;
+  created_at: string;
+  total_subscriptions?: number;
+  active_subscriptions?: number;
 }
 
 const useSubscriptionPlans = () => {
@@ -21,77 +25,24 @@ const useSubscriptionPlans = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filters, setFilters] = useState({
     status: "all",
-    billingCycle: "all",
   });
 
-  // Mock data - in a real app, this would be fetched from an API
+  // Fetch plans from API
   useEffect(() => {
-    // Simulate API call
     const fetchPlans = async () => {
       setLoading(true);
       try {
-        // Mock data
-        const mockPlans: Plan[] = [
-          {
-            id: "1",
-            name: "Basic",
-            description: "Perfect for small properties with basic needs",
-            price: 29.99,
-            currency: "USD",
-            billingCycle: "monthly",
-            features: [
-              "Up to 10 units",
-              "Basic support",
-              "Email notifications",
-              "Document storage (1GB)",
-            ],
-            isActive: true,
-            createdAt: "2023-01-15T10:30:00Z",
-            updatedAt: "2023-01-15T10:30:00Z",
-          },
-          {
-            id: "2",
-            name: "Professional",
-            description:
-              "Ideal for medium-sized properties with advanced needs",
-            price: 79.99,
-            currency: "USD",
-            billingCycle: "monthly",
-            features: [
-              "Up to 50 units",
-              "Priority support",
-              "SMS & Email notifications",
-              "Document storage (10GB)",
-              "Financial reporting",
-            ],
-            isActive: true,
-            createdAt: "2023-02-10T14:45:00Z",
-            updatedAt: "2023-02-10T14:45:00Z",
-          },
-          {
-            id: "3",
-            name: "Enterprise",
-            description: "For large properties with custom requirements",
-            price: 199.99,
-            currency: "USD",
-            billingCycle: "yearly",
-            features: [
-              "Unlimited units",
-              "24/7 dedicated support",
-              "Custom integrations",
-              "Document storage (100GB)",
-              "Advanced analytics",
-              "API access",
-            ],
-            isActive: true,
-            createdAt: "2023-03-05T09:15:00Z",
-            updatedAt: "2023-03-05T09:15:00Z",
-          },
-        ];
+        const response = await axiosInstance.get(
+          `${API_BASE_URL}/admin/subscription-plans/`
+        );
 
-        setPlans(mockPlans);
+        if (response.data.success) {
+          setPlans(response.data.data);
+        }
       } catch (error) {
         console.error("Error fetching plans:", error);
+        // Fallback to empty array on error
+        setPlans([]);
       } finally {
         setLoading(false);
       }
@@ -107,35 +58,92 @@ const useSubscriptionPlans = () => {
 
     const matchesStatus =
       filters.status === "all" ||
-      (filters.status === "active" && plan.isActive) ||
-      (filters.status === "inactive" && !plan.isActive);
+      (filters.status === "active" && plan.is_active) ||
+      (filters.status === "inactive" && !plan.is_active);
 
-    const matchesBilling =
-      filters.billingCycle === "all" ||
-      plan.billingCycle === filters.billingCycle;
-
-    return matchesSearch && matchesStatus && matchesBilling;
+    return matchesSearch && matchesStatus;
   });
 
-  const togglePlanStatus = (planId: string) => {
-    setPlans(
-      plans.map((plan) =>
-        plan.id === planId ? { ...plan, isActive: !plan.isActive } : plan
-      )
-    );
-  };
+  const togglePlanStatus = async (planId: number) => {
+    try {
+      const plan = plans.find((p) => p.id === planId);
 
-  const deletePlan = (planId: string) => {
-    if (window.confirm("Are you sure you want to delete this plan?")) {
-      setPlans(plans.filter((plan) => plan.id !== planId));
+      if (!plan) return;
+
+      const endpoint = plan.is_active
+        ? `${API_BASE_URL}/admin/subscription-plans/${planId}/deactivate/`
+        : `${API_BASE_URL}/admin/subscription-plans/${planId}/activate/`;
+
+      const response = await axiosInstance.post(endpoint, {});
+
+      if (response.data.success) {
+        // Update local state
+        setPlans(
+          plans.map((p) =>
+            p.id === planId ? { ...p, is_active: !p.is_active } : p
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error toggling plan status:", error);
     }
   };
 
-  const handleSubmitPlan = (e: React.FormEvent) => {
+  const deletePlan = async (planId: number) => {
+    if (window.confirm("Are you sure you want to delete this plan?")) {
+      try {
+        const response = await axiosInstance.delete(
+          `${API_BASE_URL}/admin/subscription-plans/${planId}/`
+        );
+
+        if (response.data.success) {
+          setPlans(plans.filter((plan) => plan.id !== planId));
+        }
+      } catch (error) {
+        console.error("Error deleting plan:", error);
+      }
+    }
+  };
+
+  const handleSubmitPlan = async (
+    e: React.FormEvent,
+    planData?: Partial<Plan>
+  ) => {
     e.preventDefault();
-    // In a real app, this would call an API to create/update the plan
-    setShowCreateModal(false);
-    setEditingPlan(null);
+
+    try {
+      if (editingPlan) {
+        // Update existing plan
+        const response = await axiosInstance.patch(
+          `${API_BASE_URL}/admin/subscription-plans/${editingPlan.id}/`,
+          planData
+        );
+
+        if (response.data.success) {
+          // Update local state
+          setPlans(
+            plans.map((p) =>
+              p.id === editingPlan.id ? { ...p, ...response.data.data } : p
+            )
+          );
+        }
+      } else {
+        // Create new plan
+        const response = await axiosInstance.post(
+          `${API_BASE_URL}/admin/subscription-plans/`,
+          planData
+        );
+
+        if (response.data.success) {
+          setPlans([...plans, response.data.data]);
+        }
+      }
+
+      setShowCreateModal(false);
+      setEditingPlan(null);
+    } catch (error) {
+      console.error("Error saving plan:", error);
+    }
   };
 
   return {

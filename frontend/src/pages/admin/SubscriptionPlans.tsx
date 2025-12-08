@@ -1,6 +1,6 @@
 import React from "react";
-import { Plus, Search, Filter, ChevronDown, Check, X } from "lucide-react";
-import AdminLayout from "@/components/AdminLayout";
+import { Plus, Search, Filter, ChevronDown, X } from "lucide-react";
+import AdminLayout from "../../components/AdminLayout";
 import useSubscriptionPlans from "@/hooks/useSubscriptionPlans";
 
 const SubscriptionPlans: React.FC = () => {
@@ -76,23 +76,6 @@ const SubscriptionPlans: React.FC = () => {
                 </div>
               </div>
 
-              <div className="relative">
-                <select
-                  className="appearance-none bg-white pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  value={filters.billingCycle}
-                  onChange={(e) =>
-                    setFilters({ ...filters, billingCycle: e.target.value })
-                  }
-                >
-                  <option value="all">All Billing</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="yearly">Yearly</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-700">
-                  <ChevronDown className="h-4 w-4" />
-                </div>
-              </div>
-
               <button className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
                 <Filter className="h-4 w-4" />
               </button>
@@ -126,9 +109,7 @@ const SubscriptionPlans: React.FC = () => {
               No plans found
             </h3>
             <p className="mt-1 text-sm text-slate-500">
-              {searchTerm ||
-              filters.status !== "all" ||
-              filters.billingCycle !== "all"
+              {searchTerm || filters.status !== "all"
                 ? "Try adjusting your search or filter to find what you're looking for."
                 : "Get started by creating a new plan."}
             </p>
@@ -162,34 +143,40 @@ const SubscriptionPlans: React.FC = () => {
                     </div>
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        plan.isActive
+                        plan.is_active
                           ? "bg-green-100 text-green-800"
                           : "bg-slate-100 text-slate-800"
                       }`}
                     >
-                      {plan.isActive ? "Active" : "Inactive"}
+                      {plan.is_active ? "Active" : "Inactive"}
                     </span>
                   </div>
 
                   <div className="mt-4">
                     <p className="text-3xl font-bold text-slate-900">
-                      ${plan.price.toFixed(2)}
+                      {typeof plan.price === "number"
+                        ? plan.price.toFixed(2)
+                        : parseFloat(plan.price || "0").toFixed(2)}
+                      dhs
                       <span className="text-base font-normal text-slate-500">
-                        /{plan.billingCycle === "monthly" ? "month" : "year"}
+                        /{plan.duration_days} days
                       </span>
                     </p>
+                    <div className="mt-2 text-sm text-slate-500">
+                      <div>Max Buildings: {plan.max_buildings}</div>
+                      <div>Max Apartments: {plan.max_apartments}</div>
+                      {plan.total_subscriptions !== undefined && (
+                        <div>
+                          Total Subscriptions: {plan.total_subscriptions}
+                        </div>
+                      )}
+                      {plan.active_subscriptions !== undefined && (
+                        <div>
+                          Active Subscriptions: {plan.active_subscriptions}
+                        </div>
+                      )}
+                    </div>
                   </div>
-
-                  <ul className="mt-6 space-y-3">
-                    {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-start">
-                        <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-slate-700">
-                          {feature}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
                 </div>
 
                 <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 mt-auto">
@@ -197,12 +184,12 @@ const SubscriptionPlans: React.FC = () => {
                     <button
                       onClick={() => togglePlanStatus(plan.id)}
                       className={`px-3 py-1.5 text-sm font-medium rounded-md ${
-                        plan.isActive
+                        plan.is_active
                           ? "text-amber-600 hover:bg-amber-50 hover:text-amber-700"
                           : "text-green-600 hover:bg-green-50 hover:text-green-700"
                       }`}
                     >
-                      {plan.isActive ? "Deactivate" : "Activate"}
+                      {plan.is_active ? "Deactivate" : "Activate"}
                     </button>
                     <div className="flex space-x-2">
                       <button
@@ -249,7 +236,27 @@ const SubscriptionPlans: React.FC = () => {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmitPlan}>
+              <form
+                onSubmit={(e) => {
+                  const formData = new FormData(e.currentTarget);
+                  const planData = {
+                    name: formData.get("name") as string,
+                    description: formData.get("description") as string,
+                    price: parseFloat(formData.get("price") as string),
+                    duration_days: parseInt(
+                      formData.get("duration_days") as string
+                    ),
+                    max_buildings: parseInt(
+                      formData.get("max_buildings") as string
+                    ),
+                    max_apartments: parseInt(
+                      formData.get("max_apartments") as string
+                    ),
+                    is_active: formData.get("is_active") === "on",
+                  };
+                  handleSubmitPlan(e, planData);
+                }}
+              >
                 <div className="space-y-6">
                   <div>
                     <label
@@ -262,10 +269,9 @@ const SubscriptionPlans: React.FC = () => {
                       type="text"
                       id="name"
                       name="name"
+                      defaultValue={editingPlan?.name}
                       required
-                      defaultValue={editingPlan?.name || ""}
-                      className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      placeholder="e.g., Professional"
+                      className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
                   </div>
 
@@ -279,153 +285,109 @@ const SubscriptionPlans: React.FC = () => {
                     <textarea
                       id="description"
                       name="description"
-                      rows={2}
-                      defaultValue={editingPlan?.description || ""}
-                      className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      placeholder="A brief description of the plan"
+                      rows={3}
+                      defaultValue={editingPlan?.description}
+                      className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label
                         htmlFor="price"
                         className="block text-sm font-medium text-slate-700"
                       >
-                        Price <span className="text-red-500">*</span>
+                        Price (DH) <span className="text-red-500">*</span>
                       </label>
-                      <div className="mt-1 relative rounded-md shadow-sm">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span className="text-slate-500 sm:text-sm">$</span>
-                        </div>
-                        <input
-                          type="number"
-                          name="price"
-                          id="price"
-                          min="0"
-                          step="0.01"
-                          required
-                          defaultValue={editingPlan?.price || ""}
-                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-7 pr-12 sm:text-sm border-slate-300 rounded-md"
-                          placeholder="0.00"
-                        />
-                        <div className="absolute inset-y-0 right-0 flex items-center">
-                          <label htmlFor="currency" className="sr-only">
-                            Currency
-                          </label>
-                          <select
-                            id="currency"
-                            name="currency"
-                            className="focus:ring-blue-500 focus:border-blue-500 h-full py-0 pl-2 pr-7 border-transparent bg-transparent text-slate-500 sm:text-sm rounded-r-md"
-                            defaultValue={editingPlan?.currency || "USD"}
-                          >
-                            <option value="USD">USD</option>
-                            <option value="EUR">EUR</option>
-                            <option value="GBP">GBP</option>
-                          </select>
-                        </div>
-                      </div>
+                      <input
+                        type="number"
+                        id="price"
+                        name="price"
+                        step="0.01"
+                        min="0"
+                        defaultValue={editingPlan?.price}
+                        required
+                        className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      />
                     </div>
 
                     <div>
                       <label
-                        htmlFor="billingCycle"
+                        htmlFor="duration_days"
                         className="block text-sm font-medium text-slate-700"
                       >
-                        Billing Cycle <span className="text-red-500">*</span>
+                        Duration (Days) <span className="text-red-500">*</span>
                       </label>
                       <select
-                        id="billingCycle"
-                        name="billingCycle"
+                        id="duration_days"
+                        name="duration_days"
+                        defaultValue={editingPlan?.duration_days}
                         required
-                        defaultValue={editingPlan?.billingCycle || "monthly"}
-                        className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       >
-                        <option value="monthly">Monthly</option>
-                        <option value="yearly">Yearly (Save 20%)</option>
+                        <option value="">Select duration</option>
+                        <option value="30">30 Days (Monthly)</option>
+                        <option value="90">90 Days (Quarterly)</option>
+                        <option value="365">365 Days (Yearly)</option>
                       </select>
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Features
-                    </label>
-                    <div className="space-y-3" id="features-container">
-                      {editingPlan?.features?.map((feature, index) => (
-                        <div key={index} className="flex items-center">
-                          <input
-                            type="text"
-                            name={`feature-${index}`}
-                            defaultValue={feature}
-                            className="flex-1 border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                            placeholder="Feature description"
-                          />
-                          <button
-                            type="button"
-                            className="ml-2 p-2 text-slate-400 hover:text-red-500"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              // In a real app, this would remove the feature from the form state
-                              const input = e.currentTarget
-                                .previousElementSibling as HTMLInputElement;
-                              if (input) input.value = "";
-                            }}
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
-                      <div className="flex items-center">
-                        <input
-                          type="text"
-                          id="new-feature"
-                          className="flex-1 border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                          placeholder="Add a new feature"
-                        />
-                        <button
-                          type="button"
-                          className="ml-2 p-2 text-blue-600 hover:bg-blue-50 rounded-md"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            const input = document.getElementById(
-                              "new-feature"
-                            ) as HTMLInputElement;
-                            if (input && input.value.trim()) {
-                              // In a real app, this would add the feature to the form state
-                              input.value = "";
-                            }
-                          }}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </button>
-                      </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="max_buildings"
+                        className="block text-sm font-medium text-slate-700"
+                      >
+                        Max Buildings
+                      </label>
+                      <input
+                        type="number"
+                        id="max_buildings"
+                        name="max_buildings"
+                        min="1"
+                        defaultValue={editingPlan?.max_buildings}
+                        className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="max_apartments"
+                        className="block text-sm font-medium text-slate-700"
+                      >
+                        Max Apartments per Building
+                      </label>
+                      <input
+                        type="number"
+                        id="max_apartments"
+                        name="max_apartments"
+                        min="1"
+                        defaultValue={editingPlan?.max_apartments}
+                        className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      />
                     </div>
                   </div>
 
-                  <div className="flex items-center">
-                    <div className="flex items-center h-5">
+                  <div>
+                    <div className="flex items-center">
                       <input
-                        id="isActive"
-                        name="isActive"
                         type="checkbox"
-                        defaultChecked={
-                          editingPlan ? editingPlan.isActive : true
-                        }
-                        className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-slate-300 rounded"
+                        id="is_active"
+                        name="is_active"
+                        defaultChecked={editingPlan?.is_active ?? true}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
                       />
-                    </div>
-                    <div className="ml-3 text-sm">
                       <label
-                        htmlFor="isActive"
-                        className="font-medium text-slate-700"
+                        htmlFor="is_active"
+                        className="ml-2 block text-sm text-slate-900"
                       >
                         Active Plan
                       </label>
-                      <p className="text-slate-500">
-                        This plan will be available for subscription
-                      </p>
                     </div>
+                    <p className="text-slate-500">
+                      This plan will be available for subscription
+                    </p>
                   </div>
                 </div>
 
