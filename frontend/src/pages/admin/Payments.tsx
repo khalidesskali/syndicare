@@ -1,10 +1,8 @@
 import React from "react";
 import {
-  Plus,
   Search,
   Filter,
   ChevronDown,
-  X,
   Download,
   CreditCard,
   DollarSign,
@@ -23,12 +21,8 @@ const Payments: React.FC = () => {
     loading,
     filters,
     setFilters,
-    showPaymentModal,
-    setShowPaymentModal,
-    editingPayment,
-    setEditingPayment,
-    deletePayment,
-    handleSubmitPayment,
+    updatePaymentStatus,
+    refundPayment,
     stats,
   } = usePayments();
 
@@ -57,13 +51,6 @@ const Payments: React.FC = () => {
               View and manage all payment records
             </p>
           </div>
-          <button
-            onClick={() => setShowPaymentModal(true)}
-            className="mt-4 md:mt-0 inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Record Payment
-          </button>
         </div>
 
         {/* Stats Grid */}
@@ -288,40 +275,40 @@ const Payments: React.FC = () => {
                         {payment.reference}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-slate-900">
-                          {payment.subscription?.syndicName}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {payment.subscription?.companyName}
+                        <div>
+                          <div className="text-sm font-medium text-slate-900">
+                            {payment.subscription?.company_name}
+                          </div>
+                          <div className="text-sm text-slate-500">
+                            {payment.subscription?.syndic_name}
+                          </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 font-medium">
+                      <td className="px-6 py-4 whitespace-nowrap">
                         {new Intl.NumberFormat("en-US", {
                           style: "currency",
-                          currency: payment.currency || "MAD",
+                          currency: "MAD",
                           minimumFractionDigits: 2,
                         }).format(payment.amount)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <span className="text-lg mr-2">
-                            {paymentMethodIcons[
+                        <span className="inline-flex items-center">
+                          {
+                            paymentMethodIcons[
                               payment.paymentMethod as keyof typeof paymentMethodIcons
-                            ] || "💳"}
+                            ]
+                          }
+                          <span className="ml-2 text-sm text-slate-900">
+                            {payment.paymentMethod.replace("_", " ")}
                           </span>
-                          <span className="text-sm text-slate-600 capitalize">
-                            {payment.paymentMethod
-                              .toLowerCase()
-                              .replace("_", " ")}
-                          </span>
-                        </div>
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                         {format(new Date(payment.paymentDate), "MMM d, yyyy")}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             statusBadgeClasses[
                               payment.status as keyof typeof statusBadgeClasses
                             ]
@@ -332,21 +319,44 @@ const Payments: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => {
-                            setEditingPayment(payment);
-                            setShowPaymentModal(true);
-                          }}
-                          className="text-blue-600 hover:text-blue-900 mr-4"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => deletePayment(payment.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Delete
-                        </button>
+                        <div className="flex justify-end space-x-2">
+                          {payment.status === "PENDING" && (
+                            <button
+                              onClick={() =>
+                                updatePaymentStatus(
+                                  parseInt(payment.id),
+                                  "COMPLETED"
+                                )
+                              }
+                              className="text-green-600 hover:text-green-900"
+                            >
+                              Mark Complete
+                            </button>
+                          )}
+                          {payment.status === "COMPLETED" && (
+                            <button
+                              onClick={() =>
+                                refundPayment(parseInt(payment.id))
+                              }
+                              className="text-blue-600 hover:text-blue-900"
+                            >
+                              Refund
+                            </button>
+                          )}
+                          {payment.status === "FAILED" && (
+                            <button
+                              onClick={() =>
+                                updatePaymentStatus(
+                                  parseInt(payment.id),
+                                  "COMPLETED"
+                                )
+                              }
+                              className="text-green-600 hover:text-green-900"
+                            >
+                              Retry
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -356,167 +366,6 @@ const Payments: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Payment Modal */}
-      {showPaymentModal && (
-        <div className="fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-slate-900">
-                  {editingPayment ? "Payment Details" : "Record New Payment"}
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowPaymentModal(false);
-                    setEditingPayment(null);
-                  }}
-                  className="text-slate-400 hover:text-slate-500"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmitPayment}>
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Subscription
-                      </label>
-                      <select
-                        required
-                        className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        defaultValue={editingPayment?.subscriptionId || ""}
-                      >
-                        <option value="">Select Subscription</option>
-                        {/* In a real app, this would be populated from the API */}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Amount
-                      </label>
-                      <div className="mt-1 relative rounded-md shadow-sm">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span className="text-slate-500 sm:text-sm">MAD</span>
-                        </div>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          required
-                          className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-16 pr-12 sm:text-sm border-slate-300 rounded-md"
-                          placeholder="0.00"
-                          defaultValue={editingPayment?.amount || ""}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Payment Method
-                      </label>
-                      <select
-                        required
-                        className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        defaultValue={editingPayment?.paymentMethod || ""}
-                      >
-                        <option value="">Select Method</option>
-                        <option value="BANK_TRANSFER">Bank Transfer</option>
-                        <option value="CARD">Credit/Debit Card</option>
-                        <option value="CASH">Cash</option>
-                        <option value="CHECK">Check</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Payment Date
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="date"
-                          required
-                          className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                          defaultValue={
-                            editingPayment
-                              ? format(
-                                  new Date(editingPayment.paymentDate),
-                                  "yyyy-MM-dd"
-                                )
-                              : format(new Date(), "yyyy-MM-dd")
-                          }
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Status
-                      </label>
-                      <select
-                        required
-                        className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        defaultValue={editingPayment?.status || "COMPLETED"}
-                      >
-                        <option value="COMPLETED">Completed</option>
-                        <option value="PENDING">Pending</option>
-                        <option value="FAILED">Failed</option>
-                        <option value="REFUNDED">Refunded</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Reference
-                      </label>
-                      <input
-                        type="text"
-                        className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        placeholder="e.g. TRX123456"
-                        defaultValue={editingPayment?.reference || ""}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Notes
-                    </label>
-                    <textarea
-                      rows={3}
-                      className="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      placeholder="Additional notes about this payment"
-                      defaultValue={editingPayment?.notes || ""}
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-8 flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowPaymentModal(false);
-                      setEditingPayment(null);
-                    }}
-                    className="px-4 py-2 border border-slate-300 rounded-md shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    {editingPayment ? "Update Payment" : "Record Payment"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
     </AdminLayout>
   );
 };

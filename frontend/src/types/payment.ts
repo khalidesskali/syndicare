@@ -12,8 +12,8 @@ export interface Payment {
   subscription?: {
     id: string;
     planName: string;
-    syndicName: string;
-    companyName: string;
+    syndic_name: string;
+    company_name: string;
   };
 }
 
