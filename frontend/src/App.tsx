@@ -10,6 +10,8 @@ import { useAuth } from "./context/AuthContext";
 import Syndics from "./pages/admin/Synidc";
 import SubscriptionPlans from "./pages/admin/SubscriptionPlans";
 import Payments from "./pages/admin/Payments";
+import Buildings from "./components/Buildings";
+import Residents from "./components/Residents";
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -61,6 +63,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/syndic/dashboard"
         element={
@@ -71,6 +74,29 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/syndic/buildings"
+        element={
+          <ProtectedRoute>
+            <RoleBasedRoute allowedRoles={["SYNDIC"]}>
+              <Buildings />
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/syndic/residents"
+        element={
+          <ProtectedRoute>
+            <RoleBasedRoute allowedRoles={["SYNDIC"]}>
+              <Residents />
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        }
+      />
+
       <Route
         path="/resident/dashboard"
         element={
