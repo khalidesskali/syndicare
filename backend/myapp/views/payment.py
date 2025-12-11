@@ -85,59 +85,6 @@ class PaymentAdminViewSet(viewsets.ModelViewSet):
             'count': queryset.count()
         })
 
-    def create(self, request, *args, **kwargs):
-        """
-        Record a new payment
-        POST /api/admin/payments/
-        Body: {
-            "subscription_id": 5,
-            "amount": 1000.00,
-            "payment_method": "BANK_TRANSFER",
-            "reference": "TRX123456",
-            "notes": "Payment for December 2024"
-        }
-        """
-        subscription_id = request.data.get('subscription_id')
-        
-        if not subscription_id:
-            return Response({
-                'success': False,
-                'message': 'Subscription ID is required'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
-            subscription = Subscription.objects.get(id=subscription_id)
-            
-            payment_data = {
-                'subscription': subscription.id,
-                'amount': request.data.get('amount'),
-                'payment_method': request.data.get('payment_method'),
-                'reference': request.data.get('reference', ''),
-                'notes': request.data.get('notes', ''),
-                'status': request.data.get('status', 'PENDING')
-            }
-            
-            serializer = self.get_serializer(data=payment_data)
-            if serializer.is_valid():
-                payment = serializer.save(processed_by=request.user)
-                
-                return Response({
-                    'success': True,
-                    'message': 'Payment recorded successfully',
-                    'data': serializer.data
-                }, status=status.HTTP_201_CREATED)
-            
-            return Response({
-                'success': False,
-                'errors': serializer.errors
-            }, status=status.HTTP_400_BAD_REQUEST)
-            
-        except Subscription.DoesNotExist:
-            return Response({
-                'success': False,
-                'message': 'Subscription not found'
-            }, status=status.HTTP_404_NOT_FOUND)
-
     def retrieve(self, request, *args, **kwargs):
         """
         Get payment details

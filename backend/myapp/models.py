@@ -33,19 +33,9 @@ class User(AbstractUser):
         ('RESIDENT', 'Resident'),
     ]
     
-    username = None  # Remove username field
+    username = None
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
-    phone = models.CharField(max_length=20, blank=True, null=True)
-    is_active = models.BooleanField(default=True)
-    created_by = models.ForeignKey(
-        'self',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='created_users',
-        help_text="Admin who created this Syndic, or Syndic who created this Resident"
-    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -76,7 +66,7 @@ class User(AbstractUser):
     @property
     def can_manage_system(self):
         """Check if user is admin with system management rights"""
-        return self.is_admin and self.is_active
+        return self.is_admin
     
     @property
     def has_valid_subscription(self):
@@ -100,16 +90,13 @@ class SyndicProfile(models.Model):
         related_name='syndic_profile',
         limit_choices_to={'role': 'SYNDIC'}
     )
-    company_name = models.CharField(max_length=200)
-    license_number = models.CharField(max_length=100, blank=True)
-    address = models.TextField(blank=True)
     
     class Meta:
         verbose_name = 'Syndic Profile'
         verbose_name_plural = 'Syndic Profiles'
     
     def __str__(self):
-        return f"Syndic: {self.company_name}"
+        return f"Syndic: {self.user.email}"
 
 
 class SubscriptionPlan(models.Model):
@@ -166,7 +153,7 @@ class Subscription(models.Model):
         verbose_name_plural = 'Subscriptions'
     
     def __str__(self):
-        return f"{self.syndic_profile.company_name} - {self.plan.name} ({self.status})"
+        return f"{self.syndic_profile.user.email} - {self.plan.name} ({self.status})"
     
     @property
     def is_active(self):
@@ -229,7 +216,7 @@ class Payment(models.Model):
         ordering = ['-payment_date']
     
     def __str__(self):
-        return f"Payment {self.amount} DH - {self.subscription.syndic_profile.company_name}"
+        return f"Payment {self.amount} DH - {self.subscription.syndic_profile.user.email}"
 
 
 class ResidentProfile(models.Model):

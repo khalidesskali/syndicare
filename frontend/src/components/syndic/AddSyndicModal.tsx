@@ -1,15 +1,5 @@
 import React, { useState } from "react";
-import {
-  X,
-  Plus,
-  Loader2,
-  User,
-  Building,
-  Lock,
-  Phone as PhoneIcon,
-  MapPin,
-  FileText,
-} from "lucide-react";
+import { X, Plus, Loader2, User, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,10 +21,6 @@ const AddSyndicModal: React.FC<AddSyndicModalProps> = ({ isOpen, onClose }) => {
     password2: "",
     first_name: "",
     last_name: "",
-    phone: "",
-    company_name: "",
-    license_number: "",
-    address: "",
     role: "SYNDIC",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -56,18 +42,6 @@ const AddSyndicModal: React.FC<AddSyndicModalProps> = ({ isOpen, onClose }) => {
     }
     if (!formData.last_name.trim()) {
       newErrors.last_name = "Last name is required";
-    }
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required";
-    }
-    if (!formData.company_name.trim()) {
-      newErrors.company_name = "Company name is required";
-    }
-    if (!formData.license_number.trim()) {
-      newErrors.license_number = "License number is required";
-    }
-    if (!formData.address.trim()) {
-      newErrors.address = "Address is required";
     }
 
     setErrors(newErrors);
@@ -108,10 +82,6 @@ const AddSyndicModal: React.FC<AddSyndicModalProps> = ({ isOpen, onClose }) => {
         password2: "",
         first_name: "",
         last_name: "",
-        phone: "",
-        company_name: "",
-        license_number: "",
-        address: "",
         role: "SYNDIC",
       });
     } catch (error) {
@@ -253,98 +223,10 @@ const AddSyndicModal: React.FC<AddSyndicModalProps> = ({ isOpen, onClose }) => {
                     )}
                   </div>
                 </div>
-
-                <div className="space-y-1">
-                  <Label
-                    htmlFor="phone"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    Phone <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <PhoneIcon className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className={`${inputClasses("phone")} pl-10`}
-                      placeholder="+212 600 123456"
-                    />
-                    {errors.phone && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.phone}
-                      </p>
-                    )}
-                  </div>
-                </div>
               </div>
 
               {/* Company & Security */}
               <div className="space-y-5">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
-                    <Building className="h-5 w-5" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Company & Security
-                  </h3>
-                </div>
-
-                <div className="space-y-1">
-                  <Label
-                    htmlFor="company_name"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    Company Name <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="company_name"
-                      name="company_name"
-                      value={formData.company_name}
-                      onChange={handleChange}
-                      className={inputClasses("company_name")}
-                      placeholder="Acme Corp"
-                    />
-                    {errors.company_name && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.company_name}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <Label
-                    htmlFor="license_number"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    License Number <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FileText className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <Input
-                      id="license_number"
-                      name="license_number"
-                      value={formData.license_number}
-                      onChange={handleChange}
-                      className={`${inputClasses("license_number")} pl-10`}
-                      placeholder="LIC-2023-001"
-                    />
-                    {errors.license_number && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.license_number}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
                 <div className="space-y-1">
                   <Label
                     htmlFor="password"
@@ -399,46 +281,6 @@ const AddSyndicModal: React.FC<AddSyndicModalProps> = ({ isOpen, onClose }) => {
                       </p>
                     )}
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Address */}
-            <div className="space-y-5">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="p-2 bg-green-100 rounded-lg text-green-600">
-                  <MapPin className="h-5 w-5" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-800">Address</h3>
-              </div>
-              <div className="space-y-1">
-                <Label
-                  htmlFor="address"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Full Address <span className="text-red-500">*</span>
-                </Label>
-                <div className="relative">
-                  <div className="absolute top-3 left-3">
-                    <MapPin className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <textarea
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-3 pl-10 rounded-lg border ${
-                      errors.address
-                        ? "border-red-500 focus:ring-2 focus:ring-red-200"
-                        : "border-gray-300 focus:ring-2 focus:ring-blue-500"
-                    } focus:outline-none transition-all duration-200 min-h-[100px]`}
-                    placeholder="123 Main St, City, Country"
-                  />
-                  {errors.address && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.address}
-                    </p>
-                  )}
                 </div>
               </div>
             </div>

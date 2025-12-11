@@ -35,8 +35,7 @@ class SyndicAdminViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(
                 Q(email__icontains=search) |
                 Q(first_name__icontains=search) |
-                Q(last_name__icontains=search) |
-                Q(syndic_profile__company_name__icontains=search)
+                Q(last_name__icontains=search)
             )
         
         # Active filter
@@ -72,58 +71,50 @@ class SyndicAdminViewSet(viewsets.ModelViewSet):
         POST /api/admin/syndics/
         Body: {
             "email": "syndic@example.com",
-            "password": "password123",
             "first_name": "Ahmed",
             "last_name": "Benani",
             "phone": "+212666123456",
-            "company_name": "Syndic Al Wafa",
-            "license_number": "LIC123456",
-            "address": "123 Rue Mohammed V, Casablanca"
         }
         """
         # Extract profile data
-        company_name = request.data.get('company_name')
-        license_number = request.data.get('license_number', '')
-        address = request.data.get('address', '')
+        password = request.data.get('password')
         
-        if not company_name:
+        if not password:
             return Response({
                 'success': False,
-                'errors': {'company_name': ['Company name is required']}
+                'errors': {'password': ['Password is required']}
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Create user
-        user_data = {
-            'email': request.data.get('email'),
-            'password': request.data.get('password'),
-            'first_name': request.data.get('first_name', ''),
-            'last_name': request.data.get('last_name', ''),
-            'phone': request.data.get('phone', ''),
-            'role': 'SYNDIC'
-        }
-        
-        serializer = self.get_serializer(data=user_data)
-        if serializer.is_valid():
-            user = serializer.save(created_by=request.user)
+        try:
+            # Create user with hashed password
+            user = User.objects.create_user(
+                email=request.data.get('email'),
+                password=password,  
+                first_name=request.data.get('first_name', ''),
+                last_name=request.data.get('last_name', ''),
+                role='SYNDIC',
+                is_active=True,
+            )
             
             # Create syndic profile
-            SyndicProfile.objects.create(
+            syndic_profile = SyndicProfile.objects.create(
                 user=user,
-                company_name=company_name,
-                license_number=license_number,
-                address=address
             )
+            
+            # Get the serialized data
+            serializer = self.get_serializer(user)
             
             return Response({
                 'success': True,
                 'message': 'Syndic account created successfully',
                 'data': serializer.data
             }, status=status.HTTP_201_CREATED)
-        
-        return Response({
-            'success': False,
-            'errors': serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
+            
+        except Exception as e:
+            return Response({
+                'success': False,
+                'errors': {'error': [str(e)]}
+            }, status=status.HTTP_400_BAD_REQUEST)
 
     def retrieve(self, request, *args, **kwargs):
         """
@@ -187,12 +178,7 @@ class SyndicAdminViewSet(viewsets.ModelViewSet):
             # Update profile if data provided
             try:
                 profile = syndic.syndic_profile
-                if 'company_name' in request.data:
-                    profile.company_name = request.data['company_name']
-                if 'license_number' in request.data:
-                    profile.license_number = request.data['license_number']
-                if 'address' in request.data:
-                    profile.address = request.data['address']
+                # No profile fields to update as they were removed
                 profile.save()
             except SyndicProfile.DoesNotExist:
                 pass
@@ -261,14 +247,13 @@ class SyndicAdminViewSet(viewsets.ModelViewSet):
         
         # Store info before deletion
         email = syndic.email
-        company_name = syndic.syndic_profile.company_name if hasattr(syndic, 'syndic_profile') else ''
         
         # Delete the syndic (this will cascade delete the profile)
         syndic.delete()
         
         return Response({
             'success': True,
-            'message': f'Syndic account {email} ({company_name}) deleted successfully'
+            'message': f'Syndic account {email} deleted successfully'
         })
     
     @action(detail=True, methods=['post'])

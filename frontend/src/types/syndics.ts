@@ -19,11 +19,7 @@ export interface SyndicFormData {
   password2: string;
   first_name: string;
   last_name: string;
-  phone: string;
   role: string;
-  company_name: string;
-  license_number: string;
-  address: string;
   is_active?: boolean;
 }
 

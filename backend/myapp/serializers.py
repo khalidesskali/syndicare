@@ -46,7 +46,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'first_name': self.user.first_name,
             'last_name': self.user.last_name,
             'role': self.user.role,
-            'phone': self.user.phone,
             'is_active': self.user.is_active,
         }
         
@@ -75,8 +74,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ['id', 'email', 'first_name', 'last_name', 'role', 'phone', 
-                  'is_active', 'created_at', 'has_valid_subscription']
+        fields = ['id', 'email', 'first_name', 'last_name', 'role', 'is_active', 'created_at', 'has_valid_subscription']
         read_only_fields = ['id', 'created_at', 'has_valid_subscription']
     
     def get_has_valid_subscription(self, obj):
@@ -107,7 +105,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ['email', 'password', 'password2', 'first_name', 'last_name', 'phone', 'role']
+        fields = ['email', 'password', 'password2', 'first_name', 'last_name', 'role']
     
     def validate_email(self, value):
         """Check if email already exists"""
@@ -247,7 +245,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     """
     syndic_email = serializers.EmailField(source='syndic_profile.user.email', read_only=True)
     syndic_name = serializers.SerializerMethodField()
-    company_name = serializers.CharField(source='syndic_profile.company_name', read_only=True)
     plan_name = serializers.CharField(source='plan.name', read_only=True)
     plan_price = serializers.DecimalField(
         source='plan.price', 
@@ -265,7 +262,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             'syndic_profile',
             'syndic_email',
             'syndic_name',
-            'company_name',
             'plan',
             'plan_name',
             'plan_price',
@@ -331,10 +327,6 @@ class PaymentSerializer(serializers.ModelSerializer):
         read_only=True
     )
     syndic_name = serializers.SerializerMethodField()
-    company_name = serializers.CharField(
-        source='subscription.syndic_profile.company_name', 
-        read_only=True
-    )
     plan_name = serializers.CharField(source='subscription.plan.name', read_only=True)
     processed_by_email = serializers.EmailField(source='processed_by.email', read_only=True)
     processed_by_name = serializers.SerializerMethodField()
@@ -346,7 +338,6 @@ class PaymentSerializer(serializers.ModelSerializer):
             'subscription',
             'syndic_email',
             'syndic_name',
-            'company_name',
             'plan_name',
             'amount',
             'payment_method',
