@@ -13,6 +13,7 @@ import Payments from "./pages/admin/Payments";
 import Buildings from "./components/Buildings";
 import Residents from "./components/Residents";
 import Charge from "./pages/syndic/Charge";
+import Reunion from "./pages/syndic/Reunion";
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -103,6 +104,16 @@ function App() {
           <ProtectedRoute>
             <RoleBasedRoute allowedRoles={["SYNDIC"]}>
               <Charge />
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/syndic/reunions"
+        element={
+          <ProtectedRoute>
+            <RoleBasedRoute allowedRoles={["SYNDIC"]}>
+              <Reunion />
             </RoleBasedRoute>
           </ProtectedRoute>
         }
