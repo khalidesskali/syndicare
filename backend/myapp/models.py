@@ -281,7 +281,6 @@ class Appartement(models.Model):
     )
     number = models.CharField(max_length=50)
     floor = models.IntegerField()
-    surface_area = models.FloatField(blank=True, null=True, help_text="Surface in m²")
     monthly_charge = models.DecimalField(
         max_digits=10, 
         decimal_places=2,
@@ -386,33 +385,6 @@ class Reunion(models.Model):
         return f"{self.title} - {self.date_time.strftime('%Y-%m-%d %H:%M')}"
 
 
-class ReunionAttendee(models.Model):
-    """
-    Track which residents attend which meetings
-    """
-    reunion = models.ForeignKey(
-        Reunion,
-        on_delete=models.CASCADE,
-        related_name='attendees'
-    )
-    resident = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='attended_reunions',
-        limit_choices_to={'role': 'RESIDENT'}
-    )
-    confirmed = models.BooleanField(default=False)
-    attended = models.BooleanField(default=False)
-    
-    class Meta:
-        verbose_name = 'Reunion Attendee'
-        verbose_name_plural = 'Reunion Attendees'
-        unique_together = ['reunion', 'resident']
-    
-    def __str__(self):
-        return f"{self.resident.email} - {self.reunion.title}"
-
-
 class Charge(models.Model):
     """
     Monthly charges/fees for apartments - Created by Syndic
@@ -459,8 +431,6 @@ class ResidentPayment(models.Model):
     PAYMENT_METHOD_CHOICES = [
         ('CASH', 'Cash'),
         ('BANK_TRANSFER', 'Bank Transfer'),
-        ('CHECK', 'Check'),
-        ('CARD', 'Card'),
     ]
     
     charge = models.ForeignKey(

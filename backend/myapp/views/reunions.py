@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 
-from ..models import Reunion, ReunionAttendee, User, Immeuble
+from ..models import Reunion, User, Immeuble
 from ..serializers import ReunionSerializer
 from ..permissions import IsSyndic
 
@@ -19,7 +19,7 @@ class ReunionViewSet(viewsets.ModelViewSet):
         """Return only reunions created by the authenticated syndic"""
         return Reunion.objects.filter(syndic=self.request.user).select_related(
             'immeuble'
-        ).prefetch_related('attendees').order_by('-date_time')
+        ).order_by('-date_time')
     
     def list(self, request, *args, **kwargs):
         """
@@ -90,32 +90,15 @@ class ReunionViewSet(viewsets.ModelViewSet):
     
     def retrieve(self, request, *args, **kwargs):
         """
-        Get reunion details with attendees
+        Get reunion details
         GET /api/syndic/reunions/{id}/
         """
         reunion = self.get_object()
         serializer = self.get_serializer(reunion)
         
-        # Get attendees info
-        attendees = ReunionAttendee.objects.filter(reunion=reunion).select_related('resident')
-        attendees_data = [{
-            'id': att.id,
-            'resident_id': att.resident.id,
-            'resident_name': f"{att.resident.first_name} {att.resident.last_name}".strip() or att.resident.email,
-            'resident_email': att.resident.email,
-            'confirmed': att.confirmed,
-            'attended': att.attended
-        } for att in attendees]
-        
         return Response({
             'success': True,
-            'data': serializer.data,
-            'attendees': attendees_data,
-            'attendees_count': {
-                'total': len(attendees_data),
-                'confirmed': sum(1 for a in attendees if a.confirmed),
-                'attended': sum(1 for a in attendees if a.attended)
-            }
+            'data': serializer.data
         })
     
     def update(self, request, *args, **kwargs):
@@ -161,73 +144,7 @@ class ReunionViewSet(viewsets.ModelViewSet):
             'message': 'Reunion deleted successfully'
         }, status=status.HTTP_200_OK)
     
-    @action(detail=True, methods=['post'])
-    def add_attendee(self, request, pk=None):
-        """
-        Add an attendee to the reunion
-        POST /api/syndic/reunions/{id}/add_attendee/
-        Body: {"resident_id": 5}
-        """
-        reunion = self.get_object()
-        resident_id = request.data.get('resident_id')
-        
-        if not resident_id:
-            return Response({
-                'success': False,
-                'message': 'Resident ID is required'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
-            resident = User.objects.get(id=resident_id, role='RESIDENT')
-            
-            # Check if already added
-            if ReunionAttendee.objects.filter(reunion=reunion, resident=resident).exists():
-                return Response({
-                    'success': False,
-                    'message': 'Resident already added to this reunion'
-                }, status=status.HTTP_400_BAD_REQUEST)
-            
-            ReunionAttendee.objects.create(reunion=reunion, resident=resident)
-            
-            return Response({
-                'success': True,
-                'message': 'Attendee added successfully'
-            })
-        except User.DoesNotExist:
-            return Response({
-                'success': False,
-                'message': 'Resident not found'
-            }, status=status.HTTP_404_NOT_FOUND)
     
-    @action(detail=True, methods=['post'])
-    def remove_attendee(self, request, pk=None):
-        """
-        Remove an attendee from the reunion
-        POST /api/syndic/reunions/{id}/remove_attendee/
-        Body: {"attendee_id": 3}
-        """
-        reunion = self.get_object()
-        attendee_id = request.data.get('attendee_id')
-        
-        if not attendee_id:
-            return Response({
-                'success': False,
-                'message': 'Attendee ID is required'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
-            attendee = ReunionAttendee.objects.get(id=attendee_id, reunion=reunion)
-            attendee.delete()
-            
-            return Response({
-                'success': True,
-                'message': 'Attendee removed successfully'
-            })
-        except ReunionAttendee.DoesNotExist:
-            return Response({
-                'success': False,
-                'message': 'Attendee not found'
-            }, status=status.HTTP_404_NOT_FOUND)
     
     @action(detail=True, methods=['post'])
     def mark_completed(self, request, pk=None):

@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 
 from .models import (
     Immeuble, Appartement, Reclamation, Reunion, 
-    ReunionAttendee, Charge, ResidentPayment, 
+    Charge, ResidentPayment, 
     ResidentProfile, User
 )
 
@@ -582,37 +582,12 @@ class ReclamationSerializer(serializers.ModelSerializer):
 # REUNION SERIALIZERS
 # ============================================
 
-class ReunionAttendeeSerializer(serializers.ModelSerializer):
-    """
-    Serializer for ReunionAttendee model
-    """
-    resident_email = serializers.EmailField(source='resident.email', read_only=True)
-    resident_name = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = ReunionAttendee
-        fields = [
-            'id',
-            'resident',
-            'resident_email',
-            'resident_name',
-            'confirmed',
-            'attended'
-        ]
-        read_only_fields = ['id']
-    
-    def get_resident_name(self, obj):
-        return f"{obj.resident.first_name} {obj.resident.last_name}".strip() or obj.resident.email
-
-
 class ReunionSerializer(serializers.ModelSerializer):
     """
     Serializer for Reunion model
     """
     building_name = serializers.CharField(source='immeuble.name', read_only=True)
     building_address = serializers.CharField(source='immeuble.address', read_only=True)
-    attendees_count = serializers.SerializerMethodField()
-    confirmed_count = serializers.SerializerMethodField()
     
     class Meta:
         model = Reunion
@@ -627,27 +602,9 @@ class ReunionSerializer(serializers.ModelSerializer):
             'date_time',
             'location',
             'status',
-            'attendees_count',
-            'confirmed_count',
             'created_at'
         ]
         read_only_fields = ['id', 'syndic', 'created_at']
-    
-    def get_attendees_count(self, obj):
-        return obj.attendees.count()
-    
-    def get_confirmed_count(self, obj):
-        return obj.attendees.filter(confirmed=True).count()
-
-
-class ReunionDetailSerializer(ReunionSerializer):
-    """
-    Detailed serializer for Reunion with attendees
-    """
-    attendees = ReunionAttendeeSerializer(many=True, read_only=True)
-    
-    class Meta(ReunionSerializer.Meta):
-        fields = ReunionSerializer.Meta.fields + ['attendees']
 
 
 # ============================================
