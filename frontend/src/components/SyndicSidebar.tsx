@@ -10,6 +10,7 @@ import {
   Settings,
   ChevronRight,
   Shield,
+  Home,
 } from "lucide-react";
 
 interface SyndicSidebarProps {
@@ -27,8 +28,13 @@ const SyndicSidebar: React.FC<SyndicSidebarProps> = ({ isOpen }) => {
     {
       title: "Property Management",
       items: [
-        { name: "Buildings", icon: Building, path: "/syndic/buildings" },
         { name: "Residents", icon: Users, path: "/syndic/residents" },
+        { name: "Buildings", icon: Building, path: "/syndic/buildings" },
+        {
+          name: "Apartments",
+          icon: Home,
+          path: "/syndic/apartments",
+        },
       ],
     },
     {

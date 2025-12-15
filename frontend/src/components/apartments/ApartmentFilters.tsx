@@ -1,0 +1,105 @@
+import { Search, Building, Users } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface ApartmentFiltersProps {
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  buildingFilter: number | null;
+  onBuildingChange: (value: number | null) => void;
+  occupancyFilter: "all" | "occupied" | "vacant";
+  onOccupancyChange: (value: "all" | "occupied" | "vacant") => void;
+  onSearch: () => void;
+  buildings?: { id: number; name: string }[];
+}
+
+export function ApartmentFilters({
+  searchTerm,
+  onSearchChange,
+  buildingFilter,
+  onBuildingChange,
+  occupancyFilter,
+  onOccupancyChange,
+  onSearch,
+  buildings = [],
+}: ApartmentFiltersProps) {
+  return (
+    <div className="bg-card rounded-lg border p-6 mb-6">
+      <div className="flex flex-col lg:flex-row gap-4">
+        {/* Search */}
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Search apartments by number or building..."
+              value={searchTerm}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="pl-10 focus:border-green-500 focus:ring-green-500"
+              onKeyPress={(e) => e.key === "Enter" && onSearch()}
+            />
+          </div>
+        </div>
+
+        {/* Building Filter */}
+        <div className="w-full lg:w-64">
+          <Select
+            value={buildingFilter?.toString() || "all"}
+            onValueChange={(value) =>
+              onBuildingChange(value === "all" ? null : parseInt(value))
+            }
+          >
+            <SelectTrigger className="focus:border-green-500 focus:ring-green-500">
+              <Building className="mr-2 h-4 w-4 text-muted-foreground" />
+              <SelectValue placeholder="All Buildings" />
+            </SelectTrigger>
+            <SelectContent className="focus:border-green-500 focus:ring-green-500">
+              <SelectItem value="all">All Buildings</SelectItem>
+              {buildings.map((building) => (
+                <SelectItem key={building.id} value={building.id.toString()}>
+                  {building.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Occupancy Filter */}
+        <div className="w-full lg:w-48">
+          <Select
+            value={occupancyFilter}
+            onValueChange={(value: "all" | "occupied" | "vacant") =>
+              onOccupancyChange(value)
+            }
+          >
+            <SelectTrigger className="focus:border-green-500 focus:ring-green-500">
+              <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+              <SelectValue placeholder="Occupancy" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Apartments</SelectItem>
+              <SelectItem value="occupied">Occupied</SelectItem>
+              <SelectItem value="vacant">Vacant</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Search Button */}
+        <div className="w-full lg:w-auto">
+          <Button
+            onClick={onSearch}
+            className="w-full lg:w-auto bg-green-600 hover:bg-green-700 text-white"
+          >
+            Search
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

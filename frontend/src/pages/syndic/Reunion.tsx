@@ -11,7 +11,7 @@ import { ReunionBulkCreateModal } from "@/components/reunions/ReunionBulkCreateM
 import { useReunion } from "../../hooks/useReunion";
 import type { Reunion } from "../../types/reunion";
 
-const Reunion: React.FC = () => {
+const ReunionPage: React.FC = () => {
   const {
     reunions,
     stats,
@@ -230,4 +230,4 @@ const Reunion: React.FC = () => {
   );
 };
 
-export default Reunion;
+export default ReunionPage;
