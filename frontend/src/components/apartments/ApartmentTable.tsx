@@ -24,7 +24,6 @@ import {
   UserMinus,
   Building,
   MapPin,
-  DollarSign,
   Users,
 } from "lucide-react";
 import type { Apartment } from "../../types/apartment";
@@ -126,9 +125,8 @@ export function ApartmentTable({
               </TableCell>
               <TableCell>
                 <div className="flex items-center space-x-1">
-                  <DollarSign className="h-4 w-4 text-slate-400" />
                   <span className="font-medium text-slate-900">
-                    ${apartment.monthly_charge}
+                    {apartment.monthly_charge} Dhs
                   </span>
                 </div>
               </TableCell>

@@ -12,6 +12,7 @@ import { SuccessMessage } from "@/components/ui/success-message";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { useApartment } from "../../hooks/useApartment";
 import type { Apartment, Resident } from "../../types/apartment";
+import { useBuilding } from "@/hooks/useBuilding";
 
 const ApartmentPage: React.FC = () => {
   const {
@@ -44,13 +45,7 @@ const ApartmentPage: React.FC = () => {
   );
   const [modalLoading, setModalLoading] = useState(false);
 
-  // Sample data - in real app this would come from API
-  const buildings = [
-    { id: 1, name: "Building A" },
-    { id: 2, name: "Building B" },
-    { id: 3, name: "Building C" },
-  ];
-
+  const { buildings } = useBuilding();
   const residents: Resident[] = [
     {
       id: 1,
