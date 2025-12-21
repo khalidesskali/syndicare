@@ -7,7 +7,7 @@ from ..permissions import IsAdmin, IsSyndic, IsResident
 from django.db.models import Sum, Count
 from django.utils import timezone
 from datetime import timedelta
-from ..models import User, Subscription, Payment
+from ..models import User, Subscription, Payment, Immeuble, Appartement, Reclamation, Reunion, Charge
 
 
 User = get_user_model()
@@ -167,12 +167,129 @@ def admin_dashboard(request):
 @permission_classes([IsSyndic])
 def syndic_dashboard(request):
     """
-    Syndic dashboard with subscription check
+    Enhanced Syndic dashboard with comprehensive statistics
+    GET /api/syndic/dashboard/
     """
+    syndic = request.user
+    today = timezone.now().date()
+    current_month_start = today.replace(day=1)
+    last_month_start = (current_month_start - timedelta(days=1)).replace(day=1)
+    
+    # ====================
+    # BUILDINGS STATISTICS
+    # ====================
+    buildings = Immeuble.objects.filter(syndic=syndic)
+    total_buildings = buildings.count()
+    
+    # Buildings added this month
+    buildings_this_month = buildings.filter(
+        created_at__gte=current_month_start
+    ).count()
+    
+    # ====================
+    # RESIDENTS STATISTICS
+    # ====================
+    apartments = Appartement.objects.filter(immeuble__syndic=syndic)
+    total_residents = User.objects.filter(
+        role='RESIDENT',
+        resident_profile__appartement__immeuble__syndic=syndic
+    ).count()
+    
+    # Residents added this month
+    residents_this_month = User.objects.filter(
+        role='RESIDENT',
+        resident_profile__appartement__immeuble__syndic=syndic,
+        created_at__gte=current_month_start
+    ).count()
+    
+    # ====================
+    # CHARGES STATISTICS
+    # ====================
+    charges_queryset = Charge.objects.filter(appartement__immeuble__syndic=syndic)
+    pending_charges = charges_queryset.filter(
+        status__in=['UNPAID', 'PARTIALLY_PAID']
+    ).count()
+    
+    # Monthly revenue from paid charges
+    current_month_charges = charges_queryset.filter(
+        status='PAID',
+        updated_at__gte=current_month_start
+    )
+    monthly_revenue = current_month_charges.aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+    
+    # Last month revenue for comparison
+    last_month_charges = charges_queryset.filter(
+        status='PAID',
+        updated_at__gte=last_month_start,
+        updated_at__lt=current_month_start
+    )
+    last_month_revenue = last_month_charges.aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+    
+    # Revenue change percentage
+    revenue_change = 0
+    if last_month_revenue > 0:
+        revenue_change = round(((monthly_revenue - last_month_revenue) / last_month_revenue * 100), 1)
+    elif monthly_revenue > 0:
+        revenue_change = 100
+    
+    # ====================
+    # REUNIONS STATISTICS
+    # ====================
+    upcoming_reunions = Reunion.objects.filter(
+        syndic=syndic,
+        status='SCHEDULED',
+        date__gt=today
+    ).count()
+    
+    # ====================
+    # RECLAMATIONS STATISTICS
+    # ====================
+    reclamations_queryset = Reclamation.objects.filter(
+        appartement__immeuble__syndic=syndic
+    )
+    open_complaints = reclamations_queryset.filter(
+        status__in=['PENDING', 'IN_PROGRESS']
+    ).count()
+    
+    # Urgent complaints (created more than 7 days ago and still pending)
+    urgent_complaints = reclamations_queryset.filter(
+        status__in=['PENDING', 'IN_PROGRESS'],
+        created_at__lte=today - timedelta(days=7)
+    ).count()
+    
+    # ====================
+    # FINANCIAL OVERVIEW
+    # ====================
+    total_monthly_charges = apartments.aggregate(
+        total=Sum('monthly_charge')
+    )['total'] or 0
+    
     return Response({
-        'message': 'Welcome to Syndic Dashboard',
-        'user': UserSerializer(request.user).data,
-        'has_valid_subscription': request.user.has_valid_subscription
+        'success': True,
+        'data': {
+            'overview': {
+                'total_buildings': total_buildings,
+                'buildings_this_month': buildings_this_month,
+                'total_residents': total_residents,
+                'residents_this_month': residents_this_month,
+                'pending_charges': pending_charges,
+                'upcoming_reunions': upcoming_reunions,
+                'open_complaints': open_complaints,
+                'urgent_complaints': urgent_complaints,
+            },
+            'financial': {
+                'monthly_revenue': float(monthly_revenue),
+                'revenue_change': float(revenue_change),
+                'total_monthly_charges': float(total_monthly_charges),
+                'last_month_revenue': float(last_month_revenue),
+            },
+            'user': UserSerializer(syndic).data,
+            'has_valid_subscription': syndic.has_valid_subscription
+        }
     })
 
 
