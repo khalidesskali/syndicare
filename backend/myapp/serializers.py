@@ -491,8 +491,8 @@ class ResidentSerializer(serializers.ModelSerializer):
     """
     Serializer for Resident users
     """
-    resident_profile = ResidentProfileSerializer(read_only=True)
-    cin = serializers.CharField(write_only=True, required=False)
+    password = serializers.CharField(write_only=True, required=True)
+    password2 = serializers.CharField(write_only=True, required=True)
     apartments = serializers.SerializerMethodField()
     
     class Meta:
@@ -503,16 +503,20 @@ class ResidentSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'role',
-            'is_active',
             'created_at',
-            'resident_profile',
-            'cin',
+            'password',
+            'password2',
             'apartments'
         ]
         read_only_fields = ['id', 'role', 'created_at']
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
+    
+    def validate(self, attrs):
+        """Validate passwords match"""
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError({
+                "password": "Password fields didn't match."
+            })
+        return attrs
     
     def get_apartments(self, obj):
         apartments = obj.appartements.all()
@@ -524,17 +528,18 @@ class ResidentSerializer(serializers.ModelSerializer):
         } for apt in apartments]
     
     def create(self, validated_data):
-        cin = validated_data.pop('cin', '')
+        validated_data.pop('password2')  # Remove password2
         password = validated_data.pop('password', None)
         validated_data['role'] = 'RESIDENT'
+        validated_data['is_active'] = True  # Set is_active to True by default
         
         user = User.objects.create(**validated_data)
         if password:
             user.set_password(password)
             user.save()
         
-        # Create resident profile
-        ResidentProfile.objects.create(user=user, cin=cin)
+        # Create resident profile with empty CIN (or remove if not needed)
+        ResidentProfile.objects.create(user=user, cin='')
         
         return user
 

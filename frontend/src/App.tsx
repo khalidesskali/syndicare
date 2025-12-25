@@ -11,7 +11,7 @@ import Syndics from "./pages/admin/Synidc";
 import SubscriptionPlans from "./pages/admin/SubscriptionPlans";
 import Payments from "./pages/admin/Payments";
 import Buildings from "./pages/syndic/Buildings";
-import Residents from "./components/Residents";
+import Residents from "./pages/syndic/Residents";
 import Charge from "./pages/syndic/Charge";
 import ReunionPage from "./pages/syndic/Reunion";
 import ApartmentPage from "./pages/syndic/Apartment";

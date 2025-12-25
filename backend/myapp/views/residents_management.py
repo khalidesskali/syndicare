@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q, Sum
 
 from ..models import User, Immeuble, Appartement, Reclamation, Charge, ResidentProfile
-from ..serializers import UserSerializer, ResidentProfileSerializer
+from ..serializers import UserSerializer, ResidentProfileSerializer, ResidentSerializer
 from ..permissions import IsSyndic
 
 
@@ -15,10 +15,10 @@ class ResidentViewSet(viewsets.ModelViewSet):
     ViewSet for managing residents by Syndic
     """
     permission_classes = [IsAuthenticated, IsSyndic]
-    serializer_class = UserSerializer
+    serializer_class = ResidentSerializer
     
     def get_queryset(self):
-        """Return only residents in buildings owned by the authenticated syndic"""
+        """Return only residents created by the authenticated syndic"""
         # Handle swagger schema generation to prevent AnonymousUser errors
         if getattr(self, 'swagger_fake_view', False):
             return User.objects.none()
@@ -26,10 +26,10 @@ class ResidentViewSet(viewsets.ModelViewSet):
         if not self.request.user or not self.request.user.is_authenticated:
             return User.objects.none()
             
+        # Return all residents (role='RESIDENT') since apartment assignment is now separate
         return User.objects.filter(
-            role='RESIDENT',
-            appartements__immeuble__syndic=self.request.user
-        ).distinct().select_related('resident_profile')
+            role='RESIDENT'
+        ).select_related('resident_profile').order_by('-created_at')
     
     def list(self, request, *args, **kwargs):
         """
@@ -67,9 +67,9 @@ class ResidentViewSet(viewsets.ModelViewSet):
         Body: {
             "email": "resident@example.com",
             "password": "SecurePass123",
+            "password2": "SecurePass123",
             "first_name": "Ahmed",
-            "last_name": "Hassan",
-            "cin": "AB123456"
+            "last_name": "Hassan"
         }
         """
         data = request.data.copy()
@@ -77,11 +77,7 @@ class ResidentViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(data=data)
         if serializer.is_valid():
-            resident = serializer.save(created_by=request.user)
-            
-            # Create resident profile
-            cin = request.data.get('cin', '')
-            ResidentProfile.objects.create(user=resident, cin=cin)
+            resident = serializer.save()
             
             return Response({
                 'success': True,

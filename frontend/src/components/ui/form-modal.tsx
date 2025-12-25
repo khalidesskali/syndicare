@@ -24,11 +24,18 @@ import { format } from "date-fns";
 export interface FormField {
   name: string;
   label: string;
-  type: "text" | "number" | "email" | "textarea" | "select" | "date";
+  type:
+    | "text"
+    | "number"
+    | "email"
+    | "password"
+    | "textarea"
+    | "select"
+    | "date";
   placeholder?: string;
   required?: boolean;
   options?: { value: string; label: string }[];
-  validation?: (value: any) => string | null;
+  validation?: (value: any, formData?: Record<string, any>) => string | null;
   min?: number;
   max?: number;
   step?: string;
@@ -86,7 +93,7 @@ export function FormModal({
     }
 
     if (field.validation) {
-      return field.validation(value);
+      return field.validation(value, formData);
     }
 
     return null;
