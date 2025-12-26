@@ -544,6 +544,78 @@ class ResidentSerializer(serializers.ModelSerializer):
         return user
 
 
+class ResidentUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for updating Resident users (password not required)
+    """
+    password = serializers.CharField(write_only=True, required=False)
+    password2 = serializers.CharField(write_only=True, required=False)
+    apartments = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'email',
+            'first_name',
+            'last_name',
+            'role',
+            'created_at',
+            'password',
+            'password2',
+            'apartments'
+        ]
+        read_only_fields = ['id', 'role', 'created_at']
+    
+    def validate(self, attrs):
+        """Validate passwords match only if both are provided"""
+        password = attrs.get('password')
+        password2 = attrs.get('password2')
+        
+        if password and password2 and password != password2:
+            raise serializers.ValidationError({
+                "password": "Password fields didn't match."
+            })
+        
+        # If only one password field is provided, require both
+        if password and not password2:
+            raise serializers.ValidationError({
+                "password2": "Please confirm the password."
+            })
+        
+        if password2 and not password:
+            raise serializers.ValidationError({
+                "password": "Please provide the password."
+            })
+        
+        return attrs
+    
+    def get_apartments(self, obj):
+        apartments = obj.appartements.all()
+        return [{
+            'id': apt.id,
+            'number': apt.number,
+            'building': apt.immeuble.name,
+            'monthly_charge': float(apt.monthly_charge)
+        } for apt in apartments]
+    
+    def update(self, instance, validated_data):
+        """Update user with optional password change"""
+        password = validated_data.pop('password', None)
+        password2 = validated_data.pop('password2', None)
+        
+        # Update user fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        # Update password if provided
+        if password:
+            instance.set_password(password)
+        
+        instance.save()
+        return instance
+
+
 # ============================================
 # RECLAMATION SERIALIZERS
 # ============================================

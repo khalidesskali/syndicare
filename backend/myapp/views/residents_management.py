@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q, Sum
 
 from ..models import User, Immeuble, Appartement, Reclamation, Charge, ResidentProfile
-from ..serializers import UserSerializer, ResidentProfileSerializer, ResidentSerializer
+from ..serializers import UserSerializer, ResidentProfileSerializer, ResidentSerializer, ResidentUpdateSerializer
 from ..permissions import IsSyndic
 
 
@@ -127,17 +127,12 @@ class ResidentViewSet(viewsets.ModelViewSet):
         """
         partial = kwargs.pop('partial', False)
         resident = self.get_object()
-        serializer = self.get_serializer(resident, data=request.data, partial=partial)
+        
+        # Use ResidentUpdateSerializer for updates (password not required)
+        serializer = ResidentUpdateSerializer(resident, data=request.data, partial=partial)
         
         if serializer.is_valid():
             serializer.save()
-            
-            # Update CIN if provided
-            cin = request.data.get('cin')
-            if cin and hasattr(resident, 'resident_profile'):
-                resident.resident_profile.cin = cin
-                resident.resident_profile.save()
-            
             return Response({
                 'success': True,
                 'message': 'Resident updated successfully',
