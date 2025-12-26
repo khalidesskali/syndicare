@@ -5,8 +5,7 @@ export interface Apartment {
   building_address: string;
   number: string;
   floor: number;
-  surface_area: number;
-  monthly_charge: number;
+  monthly_charge: number | string; // Backend sends as string from DecimalField
   resident?: number | null; // Resident ID
   resident_email?: string | null;
   resident_name?: string | null;
@@ -17,8 +16,6 @@ export interface ApartmentStats {
   total_apartments: number;
   occupied_apartments: number;
   vacant_apartments: number;
-  total_monthly_revenue: number;
-  average_monthly_charge: number;
   total_unpaid_charges: number;
 }
 
@@ -32,13 +29,7 @@ export interface CreateApartmentRequest {
   immeuble: number; // Building ID
   number: string;
   floor: number;
-  surface_area: number;
-  monthly_charge: number;
-}
-
-export interface UpdateApartmentRequest
-  extends Partial<CreateApartmentRequest> {
-  resident?: number | null;
+  monthly_charge: string; // Send as string for DecimalField
 }
 
 export interface ApartmentExtraInfo {
@@ -59,4 +50,11 @@ export interface Resident {
   first_name: string;
   last_name: string;
   role: string;
+}
+
+export interface UpdateApartmentRequest {
+  immeuble: number;
+  number: string;
+  floor: number;
+  monthly_charge: number;
 }

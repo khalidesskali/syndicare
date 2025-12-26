@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Building,
-  MapPin,
   Users,
   UserMinus,
   Edit,
@@ -102,14 +101,6 @@ export function ApartmentDetailsModal({
                   <p className="text-slate-600">Floor {apartment.floor}</p>
                 </div>
               </div>
-
-              <div className="flex items-start space-x-3">
-                <MapPin className="h-5 w-5 text-slate-400 mt-0.5" />
-                <div>
-                  <p className="font-medium text-slate-900">Surface Area</p>
-                  <p className="text-slate-600">{apartment.surface_area} m²</p>
-                </div>
-              </div>
             </div>
 
             <div className="space-y-4">
@@ -117,7 +108,12 @@ export function ApartmentDetailsModal({
                 <DollarSign className="h-5 w-5 text-slate-400 mt-0.5" />
                 <div>
                   <p className="font-medium text-slate-900">Monthly Charge</p>
-                  <p className="text-slate-600">${apartment.monthly_charge}</p>
+                  <p className="text-slate-600">
+                    {typeof apartment.monthly_charge === "string"
+                      ? apartment.monthly_charge
+                      : apartment.monthly_charge.toFixed(2)}{" "}
+                    DH
+                  </p>
                 </div>
               </div>
 

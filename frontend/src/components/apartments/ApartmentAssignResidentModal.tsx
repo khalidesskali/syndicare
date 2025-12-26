@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Apartment, Resident } from "../../types/apartment";
+import type { Apartment } from "../../types/apartment";
+import type { Resident } from "../../types/resident";
+import { useResidents } from "../../hooks/useResidents";
 
 interface ApartmentAssignResidentModalProps {
   isOpen: boolean;
@@ -26,7 +28,6 @@ interface ApartmentAssignResidentModalProps {
   ) => Promise<boolean>;
   loading?: boolean;
   apartment: Apartment | null;
-  residents?: Resident[];
 }
 
 export function ApartmentAssignResidentModal({
@@ -35,12 +36,12 @@ export function ApartmentAssignResidentModal({
   onAssignResident,
   loading = false,
   apartment,
-  residents = [],
 }: ApartmentAssignResidentModalProps) {
   const [selectedResidentId, setSelectedResidentId] = useState<number | null>(
     null
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { residents, loading: residentsLoading } = useResidents();
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -65,6 +66,14 @@ export function ApartmentAssignResidentModal({
       setErrors({});
     }
   };
+
+  // Reset form when modal opens/closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedResidentId(null);
+      setErrors({});
+    }
+  }, [isOpen]);
 
   if (!apartment) return null;
 
@@ -91,14 +100,23 @@ export function ApartmentAssignResidentModal({
                 onValueChange={(value) =>
                   setSelectedResidentId(parseInt(value))
                 }
+                disabled={residentsLoading}
               >
                 <SelectTrigger className="mt-1 border-slate-200 focus:border-green-500 focus:ring-green-500">
-                  <SelectValue placeholder="Choose a resident to assign" />
+                  <SelectValue
+                    placeholder={
+                      residentsLoading
+                        ? "Loading residents..."
+                        : "Choose a resident to assign"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {residents
-                    .filter((resident) => resident.role === "RESIDENT")
-                    .map((resident) => (
+                    .filter(
+                      (resident: Resident) => resident.role === "RESIDENT"
+                    )
+                    .map((resident: Resident) => (
                       <SelectItem
                         key={resident.id}
                         value={resident.id.toString()}
@@ -139,9 +157,9 @@ export function ApartmentAssignResidentModal({
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-600">Surface:</span>
+                  <span className="text-slate-600">Monthly Charge:</span>
                   <span className="font-medium text-slate-900 ml-1">
-                    {apartment.surface_area} m²
+                    {apartment.monthly_charge} DH
                   </span>
                 </div>
               </div>
@@ -163,7 +181,7 @@ export function ApartmentAssignResidentModal({
             type="submit"
             onClick={handleSubmit}
             className="bg-green-600 hover:bg-green-700 text-white shadow-sm"
-            disabled={loading}
+            disabled={loading || residentsLoading}
           >
             {loading ? "Assigning..." : "Assign Resident"}
           </Button>

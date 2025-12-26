@@ -43,17 +43,8 @@ export function ApartmentCreateModal({
       placeholder: "e.g., 1, 2, 3",
     },
     {
-      name: "surface_area",
-      label: "Surface Area (m²)",
-      type: "number",
-      required: true,
-      min: 0.1,
-      step: "0.1",
-      placeholder: "e.g., 85.5",
-    },
-    {
       name: "monthly_charge",
-      label: "Monthly Charge ($)",
+      label: "Monthly Charge (DH)",
       type: "number",
       required: true,
       min: 0,
@@ -62,13 +53,21 @@ export function ApartmentCreateModal({
     },
   ];
 
+  const getInitialData = () => {
+    return {
+      immeuble: "",
+      number: "",
+      floor: "",
+      monthly_charge: "",
+    };
+  };
+
   const handleSubmit = async (data: Record<string, any>): Promise<boolean> => {
     const requestData: CreateApartmentRequest = {
       immeuble: parseInt(data.immeuble),
-      number: data.number,
+      number: data.number?.toString() || "",
       floor: parseInt(data.floor),
-      surface_area: parseFloat(data.surface_area),
-      monthly_charge: parseFloat(data.monthly_charge),
+      monthly_charge: parseFloat(data.monthly_charge).toString(),
     };
 
     return await onCreateApartment(requestData);
@@ -80,6 +79,7 @@ export function ApartmentCreateModal({
       onClose={onClose}
       title="Create New Apartment"
       fields={fields}
+      initialData={getInitialData()}
       onSubmit={handleSubmit}
       loading={loading}
       submitText="Create Apartment"

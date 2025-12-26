@@ -17,14 +17,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Apartment, UpdateApartmentRequest } from "../../types/apartment";
+import apartmentAPI from "../../api/apartments";
 
 interface ApartmentEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpdateApartment: (
-    id: number,
-    data: UpdateApartmentRequest
-  ) => Promise<boolean>;
   loading?: boolean;
   apartment: Apartment | null;
   buildings?: { id: number; name: string }[];
@@ -33,7 +30,7 @@ interface ApartmentEditModalProps {
 export function ApartmentEditModal({
   isOpen,
   onClose,
-  onUpdateApartment,
+
   loading = false,
   apartment,
   buildings = [],
@@ -42,7 +39,6 @@ export function ApartmentEditModal({
     immeuble: 0,
     number: "",
     floor: 1,
-    surface_area: 0,
     monthly_charge: 0,
   });
 
@@ -55,8 +51,10 @@ export function ApartmentEditModal({
         immeuble: apartment.immeuble,
         number: apartment.number,
         floor: apartment.floor,
-        surface_area: apartment.surface_area,
-        monthly_charge: apartment.monthly_charge,
+        monthly_charge:
+          typeof apartment.monthly_charge === "string"
+            ? parseFloat(apartment.monthly_charge) || 0
+            : apartment.monthly_charge,
       });
       setErrors({});
     }
@@ -74,9 +72,6 @@ export function ApartmentEditModal({
     if (!formData.floor || formData.floor < 0) {
       newErrors.floor = "Valid floor number is required";
     }
-    if (!formData.surface_area || formData.surface_area <= 0) {
-      newErrors.surface_area = "Surface area must be greater than 0";
-    }
     if (!formData.monthly_charge || formData.monthly_charge <= 0) {
       newErrors.monthly_charge = "Monthly charge must be greater than 0";
     }
@@ -90,8 +85,34 @@ export function ApartmentEditModal({
 
     if (!validateForm() || !apartment) return;
 
-    const success = await onUpdateApartment(apartment.id, formData);
-    if (success) {
+    // Only send changed fields, ensure proper types
+    const submitData: Partial<UpdateApartmentRequest> = {};
+
+    // Only include fields that have changed
+    if (formData.immeuble !== apartment.immeuble) {
+      submitData.immeuble = formData.immeuble;
+    }
+    if (formData.number !== apartment.number) {
+      submitData.number = formData.number?.toString() || "";
+    }
+    if (formData.floor !== apartment.floor) {
+      submitData.floor = formData.floor;
+    }
+    const apartmentMonthlyCharge =
+      typeof apartment.monthly_charge === "string"
+        ? parseFloat(apartment.monthly_charge) || 0
+        : apartment.monthly_charge;
+
+    if (formData.monthly_charge !== apartmentMonthlyCharge) {
+      submitData.monthly_charge = formData.monthly_charge;
+    }
+
+    console.log("Submitting apartment update:", submitData);
+    const result = await apartmentAPI.partialUpdateApartment(
+      apartment.id,
+      submitData
+    );
+    if (result) {
       onClose();
       setErrors({});
     }
@@ -192,48 +213,19 @@ export function ApartmentEditModal({
               )}
             </div>
 
-            <div>
-              <Label
-                htmlFor="surface_area"
-                className="text-sm font-medium text-slate-700"
-              >
-                Surface Area (m²) *
-              </Label>
-              <Input
-                id="surface_area"
-                type="number"
-                min="1"
-                step="0.1"
-                value={formData.surface_area || 0}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    surface_area: parseFloat(e.target.value) || 0,
-                  }))
-                }
-                className="mt-1 border-slate-200 focus:border-green-500 focus:ring-green-500"
-                placeholder="e.g., 85.5"
-              />
-              {errors.surface_area && (
-                <p className="text-sm text-red-600 mt-1">
-                  {errors.surface_area}
-                </p>
-              )}
-            </div>
-
             <div className="md:col-span-2">
               <Label
                 htmlFor="monthly_charge"
                 className="text-sm font-medium text-slate-700"
               >
-                Monthly Charge ($) *
+                Monthly Charge (DH) *
               </Label>
               <Input
                 id="monthly_charge"
                 type="number"
                 min="0"
                 step="0.01"
-                value={formData.monthly_charge || 0}
+                value={formData.monthly_charge.toString()}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,

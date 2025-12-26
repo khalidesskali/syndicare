@@ -10,23 +10,12 @@ const calculateStats = (apartments: Apartment[]): ApartmentStats => {
   const totalApartments = apartments.length;
   const occupiedApartments = apartments.filter((a) => a.is_occupied).length;
   const vacantApartments = totalApartments - occupiedApartments;
-  const totalMonthlyRevenue = apartments.reduce(
-    (sum, a) => sum + (a.is_occupied ? a.monthly_charge : 0),
-    0
-  );
-  const averageMonthlyCharge =
-    totalApartments > 0
-      ? apartments.reduce((sum, a) => sum + a.monthly_charge, 0) /
-        totalApartments
-      : 0;
 
   return {
     total_apartments: totalApartments,
     occupied_apartments: occupiedApartments,
     vacant_apartments: vacantApartments,
-    total_monthly_revenue: totalMonthlyRevenue,
-    average_monthly_charge: Math.round(averageMonthlyCharge * 100) / 100,
-    total_unpaid_charges: 0, // This would need to be calculated from charges data
+    total_unpaid_charges: 0,
   };
 };
 
@@ -44,8 +33,6 @@ export const useApartment = () => {
     total_apartments: 0,
     occupied_apartments: 0,
     vacant_apartments: 0,
-    total_monthly_revenue: 0,
-    average_monthly_charge: 0,
     total_unpaid_charges: 0,
   });
 
@@ -226,42 +213,6 @@ export const useApartment = () => {
     [fetchApartments]
   );
 
-  // Action handlers for UI
-  const handleCreateApartment = useCallback(() => {
-    console.log("Create new apartment");
-    // Future: Open create apartment modal
-  }, []);
-
-  const handleEditApartment = useCallback((apartmentId: number) => {
-    console.log("Edit apartment:", apartmentId);
-    // Future: Open edit apartment modal
-  }, []);
-
-  const handleDeleteApartment = useCallback((apartmentId: number) => {
-    console.log("Delete apartment:", apartmentId);
-    // Future: Show delete confirmation and call deleteApartment
-  }, []);
-
-  const handleViewDetails = useCallback((apartmentId: number) => {
-    console.log("View apartment details:", apartmentId);
-    // Future: Navigate to apartment details page or open details modal
-  }, []);
-
-  const handleAssignResident = useCallback((apartmentId: number) => {
-    console.log("Assign resident to apartment:", apartmentId);
-    // Future: Open assign resident modal
-  }, []);
-
-  const handleRemoveResident = useCallback((apartmentId: number) => {
-    console.log("Remove resident from apartment:", apartmentId);
-    // Future: Show confirmation and call removeResident
-  }, []);
-
-  const handleSearch = useCallback(() => {
-    console.log("Search apartments with term:", searchTerm);
-    // Search is handled by the reactive fetchApartments
-  }, [searchTerm]);
-
   // Clear error and success messages
   const clearError = useCallback(() => {
     setError(null);
@@ -305,15 +256,6 @@ export const useApartment = () => {
     deleteApartment,
     assignResident,
     removeResident,
-
-    // UI actions
-    handleCreateApartment,
-    handleEditApartment,
-    handleDeleteApartment,
-    handleViewDetails,
-    handleAssignResident,
-    handleRemoveResident,
-    handleSearch,
 
     // Utility
     refetch: fetchApartments,

@@ -94,7 +94,12 @@ const apartmentAPI = {
     data: UpdateApartmentRequest
   ): Promise<ApiResult<Apartment>> => {
     try {
-      const response = await axiosInstance.put<ApiResponse>(
+      console.log("API updateApartment called with id:", id, "and data:", data);
+      console.log(
+        "Data types:",
+        Object.keys(data).map((key) => `${key}: ${typeof (data as any)[key]}`)
+      );
+      const response = await axiosInstance.patch<ApiResponse>(
         `syndic/apartments/${id}/`,
         data
       );
@@ -104,8 +109,12 @@ const apartmentAPI = {
         data: response.data.data || undefined,
       };
     } catch (error: any) {
+      console.error("Update apartment error:", error.response?.data);
       const message =
         error.response?.data?.message ||
+        (error.response?.data?.errors
+          ? JSON.stringify(error.response.data.errors)
+          : null) ||
         error.message ||
         "Failed to update apartment";
       return {
@@ -218,22 +227,11 @@ const apartmentAPI = {
       const totalApartments = apartments.length;
       const occupiedApartments = apartments.filter((a) => a.is_occupied).length;
       const vacantApartments = totalApartments - occupiedApartments;
-      const totalMonthlyRevenue = apartments.reduce(
-        (sum, a) => sum + (a.is_occupied ? a.monthly_charge : 0),
-        0
-      );
-      const averageMonthlyCharge =
-        totalApartments > 0
-          ? apartments.reduce((sum, a) => sum + a.monthly_charge, 0) /
-            totalApartments
-          : 0;
 
       return {
         total_apartments: totalApartments,
         occupied_apartments: occupiedApartments,
         vacant_apartments: vacantApartments,
-        total_monthly_revenue: totalMonthlyRevenue,
-        average_monthly_charge: Math.round(averageMonthlyCharge * 100) / 100,
         total_unpaid_charges: 0, // This would need to be calculated from charges data
       };
     }
@@ -243,8 +241,6 @@ const apartmentAPI = {
       total_apartments: 0,
       occupied_apartments: 0,
       vacant_apartments: 0,
-      total_monthly_revenue: 0,
-      average_monthly_charge: 0,
       total_unpaid_charges: 0,
     };
   },

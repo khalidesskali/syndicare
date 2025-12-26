@@ -1,6 +1,5 @@
 import { Search, Building, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -112,16 +111,6 @@ export function ApartmentFilters({
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
-
-        {/* Search Button */}
-        <div className="w-full lg:w-auto">
-          <Button
-            onClick={onSearch}
-            className="w-full lg:w-auto bg-green-600 hover:bg-green-700 text-white"
-          >
-            Search
-          </Button>
         </div>
       </div>
     </div>

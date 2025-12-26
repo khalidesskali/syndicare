@@ -11,7 +11,7 @@ import { ApartmentAssignResidentModal } from "@/components/apartments/ApartmentA
 import { SuccessMessage } from "@/components/ui/success-message";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { useApartment } from "../../hooks/useApartment";
-import type { Apartment, Resident } from "../../types/apartment";
+import type { Apartment } from "../../types/apartment";
 import { useBuilding } from "@/hooks/useBuilding";
 
 const ApartmentPage: React.FC = () => {
@@ -28,11 +28,11 @@ const ApartmentPage: React.FC = () => {
     setBuildingFilter,
     setOccupancyFilter,
     createApartment,
-    updateApartment,
     deleteApartment,
     assignResident,
     removeResident,
     clearMessages,
+    refetch,
   } = useApartment();
 
   // Modal states
@@ -46,29 +46,6 @@ const ApartmentPage: React.FC = () => {
   const [modalLoading, setModalLoading] = useState(false);
 
   const { buildings } = useBuilding();
-  const residents: Resident[] = [
-    {
-      id: 1,
-      email: "john.doe@example.com",
-      first_name: "John",
-      last_name: "Doe",
-      role: "RESIDENT",
-    },
-    {
-      id: 2,
-      email: "jane.smith@example.com",
-      first_name: "Jane",
-      last_name: "Smith",
-      role: "RESIDENT",
-    },
-    {
-      id: 3,
-      email: "bob.wilson@example.com",
-      first_name: "Bob",
-      last_name: "Wilson",
-      role: "RESIDENT",
-    },
-  ];
 
   // Modal action handlers
   const handleCreateApartment = () => {
@@ -91,6 +68,7 @@ const ApartmentPage: React.FC = () => {
       setModalLoading(false);
 
       if (success) {
+        await refetch(); // Auto-refresh after successful deletion
         setShowDetailsModal(false);
       }
     }
@@ -116,8 +94,12 @@ const ApartmentPage: React.FC = () => {
       )
     ) {
       setModalLoading(true);
-      await removeResident(apartment.id);
+      const result = await removeResident(apartment.id);
       setModalLoading(false);
+
+      if (result) {
+        await refetch(); // Auto-refresh after successful resident removal
+      }
     }
   };
 
@@ -132,22 +114,8 @@ const ApartmentPage: React.FC = () => {
     setModalLoading(false);
 
     if (result) {
+      await refetch(); // Auto-refresh after successful creation
       setShowCreateModal(false);
-      return true;
-    }
-    return false;
-  };
-
-  const handleEditSubmit = async (data: any) => {
-    if (!selectedApartment) return false;
-
-    setModalLoading(true);
-    const result = await updateApartment(selectedApartment.id, data);
-    setModalLoading(false);
-
-    if (result) {
-      setShowEditModal(false);
-      setSelectedApartment(null);
       return true;
     }
     return false;
@@ -162,6 +130,7 @@ const ApartmentPage: React.FC = () => {
     setModalLoading(false);
 
     if (result) {
+      await refetch(); // Auto-refresh after successful resident assignment
       setShowAssignResidentModal(false);
       setSelectedApartment(null);
       return true;
@@ -264,7 +233,6 @@ const ApartmentPage: React.FC = () => {
       <ApartmentEditModal
         isOpen={showEditModal}
         onClose={handleCloseModals}
-        onUpdateApartment={handleEditSubmit}
         loading={modalLoading}
         apartment={selectedApartment}
         buildings={buildings}
@@ -286,7 +254,6 @@ const ApartmentPage: React.FC = () => {
         onAssignResident={handleAssignResidentSubmit}
         loading={modalLoading}
         apartment={selectedApartment}
-        residents={residents}
       />
     </SyndicLayout>
   );

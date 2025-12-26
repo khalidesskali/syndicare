@@ -1,4 +1,4 @@
-import { Home, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
+import { Home, AlertCircle, Users, DollarSign } from "lucide-react";
 import type { ApartmentStats } from "../../types/apartment";
 
 interface ApartmentStatsProps {
@@ -15,6 +15,13 @@ export function ApartmentStats({ stats }: ApartmentStatsProps) {
       bgColor: "bg-purple-50",
     },
     {
+      title: "Occupied",
+      value: stats.occupied_apartments.toString(),
+      icon: Users,
+      color: "bg-green-100 text-green-600 border-green-200",
+      bgColor: "bg-green-50",
+    },
+    {
       title: "Vacant",
       value: stats.vacant_apartments.toString(),
       icon: AlertCircle,
@@ -22,18 +29,11 @@ export function ApartmentStats({ stats }: ApartmentStatsProps) {
       bgColor: "bg-amber-50",
     },
     {
-      title: "Monthly Revenue",
-      value: `$${stats.total_monthly_revenue.toLocaleString()}`,
+      title: "Unpaid Charges",
+      value: `${stats.total_unpaid_charges.toLocaleString()} DH`,
       icon: DollarSign,
-      color: "bg-blue-100 text-blue-600 border-blue-200",
-      bgColor: "bg-blue-50",
-    },
-    {
-      title: "Avg Monthly Charge",
-      value: `$${stats.average_monthly_charge.toFixed(2)}`,
-      icon: TrendingUp,
-      color: "bg-emerald-100 text-emerald-600 border-emerald-200",
-      bgColor: "bg-emerald-50",
+      color: "bg-red-100 text-red-600 border-red-200",
+      bgColor: "bg-red-50",
     },
   ];
 

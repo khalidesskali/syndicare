@@ -67,13 +67,6 @@ class AppartementViewSet(viewsets.ModelViewSet):
         """
         Create a new apartment
         POST /api/syndic/apartments/
-        Body: {
-            "immeuble": 1,
-            "number": "101",
-            "floor": 1,
-            "surface_area": 85.5,
-            "monthly_charge": 500.00
-        }
         """
         # Check subscription limits
         if not self._check_apartment_limit():
