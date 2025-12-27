@@ -143,18 +143,15 @@ class ImmeubleViewSet(viewsets.ModelViewSet):
         """
         building = self.get_object()
         
-        # Check if building has apartments
-        if building.appartements.exists():
-            return Response({
-                'success': False,
-                'message': 'Cannot delete building with existing apartments. Please remove all apartments first.'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        # Delete all apartments related to this building
+        appartements_deleted = building.appartements.count()
+        building.appartements.all().delete()
         
         building.delete()
         
         return Response({
             'success': True,
-            'message': 'Building deleted successfully'
+            'message': f'Building and {appartements_deleted} associated apartment(s) deleted successfully'
         }, status=status.HTTP_200_OK)
     
     def _check_building_limit(self):

@@ -4,10 +4,24 @@ import type { Building, BuildingStats } from "../types/building";
 export interface CreateBuildingRequest {
   name: string;
   address: string;
-  total_apartments: number;
-  year_built: number;
   floors: number;
-  status: "active" | "inactive" | "maintenance";
+}
+
+export interface CreateBuildingResponse {
+  success: boolean;
+  message: string;
+  data: Building;
+}
+
+export interface UpdateBuildingResponse {
+  success: boolean;
+  message: string;
+  data: Building;
+}
+
+export interface DeleteBuildingResponse {
+  success: boolean;
+  message: string;
 }
 
 export interface UpdateBuildingRequest extends Partial<CreateBuildingRequest> {
@@ -70,11 +84,10 @@ const buildingAPI = {
   },
 
   // Create new building
-  createBuilding: async (data: CreateBuildingRequest): Promise<Building> => {
-    const response = await axiosInstance.post<Building>(
-      "syndic/buildings/",
-      data
-    );
+  createBuilding: async (
+    data: CreateBuildingRequest
+  ): Promise<CreateBuildingResponse> => {
+    const response = await axiosInstance.post("syndic/buildings/", data);
     return response.data;
   },
 
@@ -82,17 +95,15 @@ const buildingAPI = {
   updateBuilding: async (
     id: number,
     data: UpdateBuildingRequest
-  ): Promise<Building> => {
-    const response = await axiosInstance.put<Building>(
-      `syndic/buildings/${id}/`,
-      data
-    );
+  ): Promise<UpdateBuildingResponse> => {
+    const response = await axiosInstance.put(`syndic/buildings/${id}/`, data);
     return response.data;
   },
 
   // Delete building
-  deleteBuilding: async (id: number): Promise<void> => {
-    await axiosInstance.delete(`syndic/buildings/${id}/`);
+  deleteBuilding: async (id: number): Promise<DeleteBuildingResponse> => {
+    const response = await axiosInstance.delete(`syndic/buildings/${id}/`);
+    return response.data;
   },
 
   // Get building statistics (calculated from buildings data)

@@ -2,7 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import type { Building, BuildingStats } from "../types/building";
 import buildingAPI, {
   type CreateBuildingRequest,
+  type CreateBuildingResponse,
   type UpdateBuildingRequest,
+  type UpdateBuildingResponse,
+  type DeleteBuildingResponse,
 } from "../api/buildings";
 
 // Helper function to calculate stats from buildings data
@@ -97,12 +100,17 @@ export const useBuilding = () => {
   const createBuilding = useCallback(
     async (data: CreateBuildingRequest): Promise<Building | null> => {
       try {
-        const newBuilding = await buildingAPI.createBuilding(data);
+        const response: CreateBuildingResponse =
+          await buildingAPI.createBuilding(data);
+
+        // Extract building data and message from backend response
+        const newBuilding = response.data;
+        const successMessage = response.message;
+
         setBuildings((prev) => [...prev, newBuilding]);
         await fetchBuildings(); // Refresh stats
-        setSuccessMessage(
-          `Building "${newBuilding.name}" created successfully`
-        );
+
+        setSuccessMessage(successMessage);
         return newBuilding;
       } catch (err) {
         let errorMessage = "Failed to create building";
@@ -136,14 +144,19 @@ export const useBuilding = () => {
       data: UpdateBuildingRequest
     ): Promise<Building | null> => {
       try {
-        const updatedBuilding = await buildingAPI.updateBuilding(id, data);
+        const response: UpdateBuildingResponse =
+          await buildingAPI.updateBuilding(id, data);
+
+        // Extract building data and message from backend response
+        const updatedBuilding = response.data;
+        const successMessage = response.message;
+
         setBuildings((prev) =>
           prev.map((b) => (b.id === id ? updatedBuilding : b))
         );
         await fetchBuildings(); // Refresh stats
-        setSuccessMessage(
-          `Building "${updatedBuilding.name}" updated successfully`
-        );
+
+        setSuccessMessage(successMessage);
         return updatedBuilding;
       } catch (err) {
         let errorMessage = "Failed to update building";
@@ -174,13 +187,16 @@ export const useBuilding = () => {
   const deleteBuilding = useCallback(
     async (id: number): Promise<boolean> => {
       try {
-        const buildingToDelete = buildings.find((b) => b.id === id);
-        const buildingName = buildingToDelete?.name || "Unknown";
+        const response: DeleteBuildingResponse =
+          await buildingAPI.deleteBuilding(id);
 
-        await buildingAPI.deleteBuilding(id);
+        // Extract success message from backend response
+        const successMessage = response.message;
+
         setBuildings((prev) => prev.filter((b) => b.id !== id));
         await fetchBuildings(); // Refresh stats
-        setSuccessMessage(`Building "${buildingName}" deleted successfully`);
+
+        setSuccessMessage(successMessage);
         return true;
       } catch (err) {
         let errorMessage = "Failed to delete building";
@@ -205,7 +221,7 @@ export const useBuilding = () => {
         return false;
       }
     },
-    [fetchBuildings, buildings]
+    [fetchBuildings]
   );
 
   const updateBuildingStatus = useCallback(

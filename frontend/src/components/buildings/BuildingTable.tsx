@@ -78,9 +78,6 @@ export function BuildingTable({
             <TableHead className="font-semibold text-slate-900">
               Occupancy
             </TableHead>
-            <TableHead className="font-semibold text-slate-900">
-              Status
-            </TableHead>
             <TableHead className="font-semibold text-slate-900 pr-5">
               Actions
             </TableHead>
@@ -141,11 +138,6 @@ export function BuildingTable({
                     %
                   </span>
                 </div>
-              </TableCell>
-              <TableCell>
-                <Badge variant={getStatusVariant(building.status)}>
-                  {building.status}
-                </Badge>
               </TableCell>
               <TableCell className="pr-5">
                 <div className="flex items-center space-x-2">

@@ -49,7 +49,7 @@ export function BuildingModals({
         placeholder: "e.g., Al Wafa Building",
         validation: {
           min: 3,
-          max: 100,
+          max: 200,
         },
       },
       {
@@ -60,29 +60,7 @@ export function BuildingModals({
         placeholder: "e.g., 123 Rue Mohammed V, Casablanca",
         validation: {
           min: 10,
-          max: 200,
-        },
-      },
-      {
-        name: "total_apartments",
-        label: "Total Apartments",
-        type: "number",
-        required: true,
-        placeholder: "24",
-        validation: {
-          min: 1,
-          max: 1000,
-        },
-      },
-      {
-        name: "year_built",
-        label: "Year Built",
-        type: "number",
-        required: true,
-        placeholder: "2018",
-        validation: {
-          min: 1900,
-          max: new Date().getFullYear(),
+          max: 500,
         },
       },
       {
@@ -95,18 +73,6 @@ export function BuildingModals({
           min: 1,
           max: 100,
         },
-      },
-      {
-        name: "status",
-        label: "Status",
-        type: "select",
-        required: true,
-        defaultValue: "active",
-        options: [
-          { value: "active", label: "Active" },
-          { value: "inactive", label: "Inactive" },
-          { value: "maintenance", label: "Under Maintenance" },
-        ],
       },
     ],
     submitButtonText: "Add Building",
@@ -138,7 +104,7 @@ export function BuildingModals({
         placeholder: "e.g., Al Wafa Building",
         validation: {
           min: 3,
-          max: 100,
+          max: 200,
         },
       },
       {
@@ -149,39 +115,7 @@ export function BuildingModals({
         placeholder: "e.g., 123 Rue Mohammed V, Casablanca",
         validation: {
           min: 10,
-          max: 200,
-        },
-      },
-      {
-        name: "total_apartments",
-        label: "Total Apartments",
-        type: "number",
-        required: true,
-        placeholder: "24",
-        validation: {
-          min: 1,
-          max: 1000,
-        },
-      },
-      {
-        name: "occupied_apartments",
-        label: "Occupied Apartments",
-        type: "number",
-        required: false,
-        placeholder: "20",
-        validation: {
-          min: 0,
-        },
-      },
-      {
-        name: "year_built",
-        label: "Year Built",
-        type: "number",
-        required: true,
-        placeholder: "2018",
-        validation: {
-          min: 1900,
-          max: new Date().getFullYear(),
+          max: 500,
         },
       },
       {
@@ -194,17 +128,6 @@ export function BuildingModals({
           min: 1,
           max: 100,
         },
-      },
-      {
-        name: "status",
-        label: "Status",
-        type: "select",
-        required: true,
-        options: [
-          { value: "active", label: "Active" },
-          { value: "inactive", label: "Inactive" },
-          { value: "maintenance", label: "Under Maintenance" },
-        ],
       },
     ],
     submitButtonText: "Update Building",
@@ -229,7 +152,7 @@ export function BuildingModals({
   const getDeleteBuildingConfig = (building: Building): DeleteModalConfig => ({
     title: "Delete Building",
     description:
-      "Are you sure you want to delete this building? This action cannot be undone and will also delete all associated data.",
+      "Are you sure you want to delete this building? This action cannot be undone and will also delete all associated apartments and their data.",
     itemName: `${building.name} - ${building.address}`,
     confirmText: "DELETE",
     action: async () => {
