@@ -347,6 +347,21 @@ class Reclamation(models.Model):
     def __str__(self):
         return f"{self.title} - {self.resident.email} ({self.status})"
 
+class ReclamationStatusHistory(models.Model):
+    reclamation = models.ForeignKey(
+        Reclamation,
+        on_delete=models.CASCADE,
+        related_name='status_history'
+    )
+    old_status = models.CharField(max_length=20)
+    new_status = models.CharField(max_length=20)
+    changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    comment = models.TextField(blank=True)
+    changed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['changed_at']
+
 
 class Reunion(models.Model):
     """
