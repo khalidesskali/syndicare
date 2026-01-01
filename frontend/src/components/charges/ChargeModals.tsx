@@ -26,7 +26,7 @@ interface ChargeModalsProps {
     building_id: number;
     description: string;
     due_date: string;
-  }) => Promise<Charge[] | null>;
+  }) => Promise<boolean>;
   buildings: Array<{ id: number; name: string }>;
   apartments: Array<{
     id: number;
@@ -177,34 +177,17 @@ export function ChargeModals({
         label: "Due Date",
         type: "date",
         required: true,
-      },
-      {
-        name: "status",
-        label: "Status",
-        type: "select",
-        required: true,
-        options: [
-          { value: "UNPAID", label: "Unpaid" },
-          { value: "PAID", label: "Paid" },
-          { value: "PARTIALLY_PAID", label: "Partially Paid" },
-        ],
-      },
-      {
-        name: "paid_amount",
-        label: "Paid Amount",
-        type: "number",
-        required: false,
-        placeholder: "0.00",
         validation: {
-          min: 0,
-          max: 999999.99,
+          custom: (value: string) => {
+            const selectedDate = new Date(value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (selectedDate < today) {
+              return "Due date must be today or in the future";
+            }
+            return null;
+          },
         },
-      },
-      {
-        name: "paid_date",
-        label: "Paid Date",
-        type: "date",
-        required: false,
       },
     ],
     submitButtonText: "Update Charge",

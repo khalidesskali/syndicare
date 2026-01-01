@@ -439,36 +439,89 @@ class Charge(models.Model):
         return self.status == 'UNPAID' and self.due_date < today
 
 
+from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 class ResidentPayment(models.Model):
-    """
-    Payment records for resident charges - Tracked by Syndic
-    """
-    PAYMENT_METHOD_CHOICES = [
+    PAYMENT_METHODS = [
         ('CASH', 'Cash'),
         ('BANK_TRANSFER', 'Bank Transfer'),
+        ('CHECK', 'Check'),
+        ('ONLINE', 'Online'),
     ]
-    
-    charge = models.ForeignKey(
-        Charge,
-        on_delete=models.CASCADE,
-        related_name='resident_payments'
-    )
+
+    PAYMENT_STATUS = [
+        ('PENDING', 'Pending'),
+        ('CONFIRMED', 'Confirmed'),
+        ('REJECTED', 'Rejected'),
+    ]
+
     resident = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='resident_payments',
+        related_name='payments',
         limit_choices_to={'role': 'RESIDENT'}
     )
+
+    syndic = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='validated_payments',
+        limit_choices_to={'role': 'SYNDIC'}
+    )
+
+    appartement = models.ForeignKey(
+        'Appartement',
+        on_delete=models.CASCADE,
+        related_name='payments'
+    )
+
+    charge = models.ForeignKey(
+        'Charge',
+        on_delete=models.CASCADE,
+        related_name='payments'
+    )
+
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES)
-    reference = models.CharField(max_length=100, blank=True)
-    payment_date = models.DateTimeField(auto_now_add=True)
-    notes = models.TextField(blank=True)
-    
+
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PAYMENT_METHODS
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS,
+        default='PENDING'
+    )
+
+    reference = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Bank reference / receipt number"
+    )
+
+    paid_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Date the resident claims payment was made"
+    )
+
+    confirmed_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Date the syndic confirmed the payment"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
     class Meta:
+        ordering = ['-created_at']
         verbose_name = 'Resident Payment'
         verbose_name_plural = 'Resident Payments'
-        ordering = ['-payment_date']
-    
+
     def __str__(self):
-        return f"Payment {self.amount} DH - {self.resident.email}"
+        return f"{self.resident.email} - {self.amount} ({self.status})"

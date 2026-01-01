@@ -1,6 +1,5 @@
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -9,16 +8,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { format } from "date-fns";
-import { useState, useRef, useEffect } from "react";
+
+interface Building {
+  id: number;
+  name: string;
+}
+
+interface Apartment {
+  id: number;
+  number: string;
+  building_id: number;
+  building_name: string;
+}
 
 interface ChargeFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   statusFilter: string;
   onStatusChange: (value: string) => void;
-  dateRange: { from?: Date; to?: Date } | undefined;
-  onDateRangeChange: (range: { from?: Date; to?: Date } | undefined) => void;
+  buildingFilter?: number;
+  onBuildingChange: (value: number | undefined) => void;
+  apartmentFilter?: number;
+  onApartmentChange: (value: number | undefined) => void;
+  overdueFilter: boolean;
+  onOverdueChange: (value: boolean) => void;
+  buildings: Building[];
+  apartments: Apartment[];
   onSearch: () => void;
   onClearFilters: () => void;
 }
@@ -28,36 +43,21 @@ export function ChargeFilters({
   onSearchChange,
   statusFilter,
   onStatusChange,
-  dateRange,
-  onDateRangeChange,
+  buildingFilter,
+  onBuildingChange,
+  apartmentFilter,
+  onApartmentChange,
+  overdueFilter,
+  onOverdueChange,
+  buildings,
+  apartments,
   onSearch,
   onClearFilters,
 }: ChargeFiltersProps) {
-  const [showStartCalendar, setShowStartCalendar] = useState(false);
-  const [showEndCalendar, setShowEndCalendar] = useState(false);
-  const startCalendarRef = useRef<HTMLDivElement>(null);
-  const endCalendarRef = useRef<HTMLDivElement>(null);
-
-  // Close calendars when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        startCalendarRef.current &&
-        !startCalendarRef.current.contains(event.target as Node)
-      ) {
-        setShowStartCalendar(false);
-      }
-      if (
-        endCalendarRef.current &&
-        !endCalendarRef.current.contains(event.target as Node)
-      ) {
-        setShowEndCalendar(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // Filter apartments based on selected building
+  const filteredApartments = buildingFilter
+    ? apartments.filter((apt) => apt.building_id === buildingFilter)
+    : apartments;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
@@ -99,12 +99,6 @@ export function ChargeFilters({
                 Paid
               </SelectItem>
               <SelectItem
-                value="OVERDUE"
-                className="hover:bg-green-50 focus:bg-green-50"
-              >
-                Overdue
-              </SelectItem>
-              <SelectItem
                 value="PARTIALLY_PAID"
                 className="hover:bg-green-50 focus:bg-green-50"
               >
@@ -113,63 +107,85 @@ export function ChargeFilters({
             </SelectContent>
           </Select>
 
-          <div className="flex items-center space-x-2">
-            <div className="relative" ref={startCalendarRef}>
-              <Button
-                variant="outline"
-                className="w-[140px] border-slate-200 focus:border-green-500 focus:ring-green-500 bg-green-50/50 text-sm justify-start text-left font-normal hover:bg-green-100"
-                onClick={() => {
-                  setShowStartCalendar(!showStartCalendar);
-                  setShowEndCalendar(false);
-                }}
+          <Select
+            value={buildingFilter?.toString() || "all"}
+            onValueChange={(value) =>
+              onBuildingChange(value === "all" ? undefined : Number(value))
+            }
+          >
+            <SelectTrigger className="w-[180px] border-slate-200 focus:border-green-500 focus:ring-green-500 bg-green-50/50">
+              <SelectValue placeholder="Filter by building" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem
+                value="all"
+                className="hover:bg-green-50 focus:bg-green-50"
               >
-                {dateRange?.from
-                  ? format(dateRange.from, "MMM dd, yyyy")
-                  : "Start date"}
-              </Button>
-              {showStartCalendar && (
-                <div className="absolute top-full left-0 z-50 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg p-2">
-                  <Calendar
-                    mode="single"
-                    selected={dateRange?.from}
-                    onSelect={(date) => {
-                      onDateRangeChange({ from: date, to: dateRange?.to });
-                      setShowStartCalendar(false);
-                    }}
-                    className="rounded-md"
-                  />
-                </div>
-              )}
-            </div>
-            <span className="text-slate-400 text-sm">to</span>
-            <div className="relative" ref={endCalendarRef}>
-              <Button
-                variant="outline"
-                className="w-[140px] border-slate-200 focus:border-green-500 focus:ring-green-500 bg-green-50/50 text-sm justify-start text-left font-normal hover:bg-green-100"
-                onClick={() => {
-                  setShowEndCalendar(!showEndCalendar);
-                  setShowStartCalendar(false);
-                }}
+                All Buildings
+              </SelectItem>
+              {buildings.map((building) => (
+                <SelectItem
+                  key={building.id}
+                  value={building.id.toString()}
+                  className="hover:bg-green-50 focus:bg-green-50"
+                >
+                  {building.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={apartmentFilter?.toString() || "all"}
+            onValueChange={(value) =>
+              onApartmentChange(value === "all" ? undefined : Number(value))
+            }
+            disabled={!buildingFilter}
+          >
+            <SelectTrigger className="w-[150px] border-slate-200 focus:border-green-500 focus:ring-green-500 bg-green-50/50">
+              <SelectValue placeholder="Apartment" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem
+                value="all"
+                className="hover:bg-green-50 focus:bg-green-50"
               >
-                {dateRange?.to
-                  ? format(dateRange.to, "MMM dd, yyyy")
-                  : "End date"}
-              </Button>
-              {showEndCalendar && (
-                <div className="absolute top-full left-0 z-50 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg p-2">
-                  <Calendar
-                    mode="single"
-                    selected={dateRange?.to}
-                    onSelect={(date) => {
-                      onDateRangeChange({ from: dateRange?.from, to: date });
-                      setShowEndCalendar(false);
-                    }}
-                    className="rounded-md"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
+                All Apartments
+              </SelectItem>
+              {filteredApartments.map((apartment) => (
+                <SelectItem
+                  key={apartment.id}
+                  value={apartment.id.toString()}
+                  className="hover:bg-green-50 focus:bg-green-50"
+                >
+                  {apartment.number}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={overdueFilter ? "true" : "false"}
+            onValueChange={(value) => onOverdueChange(value === "true")}
+          >
+            <SelectTrigger className="w-[120px] border-slate-200 focus:border-green-500 focus:ring-green-500 bg-green-50/50">
+              <SelectValue placeholder="Overdue" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem
+                value="false"
+                className="hover:bg-green-50 focus:bg-green-50"
+              >
+                All
+              </SelectItem>
+              <SelectItem
+                value="true"
+                className="hover:bg-green-50 focus:bg-green-50"
+              >
+                Overdue Only
+              </SelectItem>
+            </SelectContent>
+          </Select>
 
           <Button
             onClick={onSearch}

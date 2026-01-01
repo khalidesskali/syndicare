@@ -3,15 +3,12 @@ import type { Charge, ChargeStats } from "../types/charge";
 import {
   type CreateChargeRequest,
   type UpdateChargeRequest,
-  type MarkPaidRequest,
   type BulkCreateRequest,
   type ChargeResponse,
   type DeleteChargeResponse,
-  type MarkPaidResponse,
   type BulkCreateResponse,
 } from "../types/charge";
 import chargeAPI from "@/api/charges";
-import axiosInstance from "@/api/axios";
 
 export const useCharge = () => {
   const [charges, setCharges] = useState<Charge[]>([]);
@@ -24,7 +21,6 @@ export const useCharge = () => {
     total_amount: 0,
     paid_amount: 0,
     unpaid_amount: 0,
-    overdue_amount: 0,
     collection_rate: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -37,33 +33,15 @@ export const useCharge = () => {
     async (filters?: {
       status?: string;
       search?: string;
-      dateFrom?: string;
-      dateTo?: string;
+      building_id?: number;
+      apartment_id?: number;
+      overdue?: boolean;
     }) => {
       setLoading(true);
       setError(null);
       try {
-        const params = new URLSearchParams();
-
-        if (filters?.status && filters.status !== "all") {
-          params.append("status", filters.status);
-        }
-        if (filters?.search) {
-          params.append("search", filters.search);
-        }
-        if (filters?.dateFrom) {
-          params.append("date_from", filters.dateFrom);
-        }
-        if (filters?.dateTo) {
-          params.append("date_to", filters.dateTo);
-        }
-
-        const url = params.toString()
-          ? `syndic/charges/?${params.toString()}`
-          : "syndic/charges/";
-
-        const response = await axiosInstance.get(url);
-        setCharges(response.data.data);
+        const chargeData = await chargeAPI.getCharges(filters);
+        setCharges(chargeData);
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Failed to fetch charges";
@@ -213,53 +191,9 @@ export const useCharge = () => {
     [fetchStats]
   );
 
-  // Mark charge as paid
-  const markPaid = useCallback(
-    async (id: number, data: MarkPaidRequest): Promise<Charge | null> => {
-      try {
-        const response: MarkPaidResponse = await chargeAPI.markPaid(id, data);
-
-        const updatedCharge = response.data;
-        const successMessage = response.message;
-
-        setCharges((prev) =>
-          prev.map((c) => (c.id === id ? updatedCharge : c))
-        );
-        await fetchStats();
-
-        setSuccessMessage(successMessage);
-        setTimeout(() => {
-          setSuccessMessage(null);
-        }, 3000);
-        return updatedCharge;
-      } catch (err) {
-        let errorMessage = "Failed to mark charge as paid";
-
-        if (err && typeof err === "object" && "response" in err) {
-          const errorObj = err as any;
-          if (errorObj.response?.data?.message) {
-            errorMessage = errorObj.response.data.message;
-          } else if (errorObj.response?.data?.error) {
-            errorMessage = errorObj.response.data.error;
-          } else if (errorObj.message) {
-            errorMessage = errorObj.message;
-          }
-        } else if (err instanceof Error) {
-          errorMessage = err.message;
-        }
-
-        setError(errorMessage);
-        setErrorMessage(errorMessage);
-        console.error("Error marking charge as paid:", err);
-        return null;
-      }
-    },
-    [fetchStats]
-  );
-
   // Bulk create charges
   const bulkCreateCharges = useCallback(
-    async (data: BulkCreateRequest): Promise<Charge[] | null> => {
+    async (data: BulkCreateRequest): Promise<boolean> => {
       try {
         const response: BulkCreateResponse = await chargeAPI.bulkCreateCharges(
           data
@@ -276,7 +210,7 @@ export const useCharge = () => {
           setSuccessMessage(null);
         }, 3000);
 
-        return null; // Return null since we don't have the actual charges data
+        return true;
       } catch (err) {
         let errorMessage = "Failed to bulk create charges";
 
@@ -296,11 +230,21 @@ export const useCharge = () => {
         setError(errorMessage);
         setErrorMessage(errorMessage);
         console.error("Error bulk creating charges:", err);
-        return null;
+        return false;
       }
     },
     []
   );
+
+  // Get charge details with payments
+  const getChargeWithPayments = useCallback(async (id: number) => {
+    try {
+      return await chargeAPI.getChargeById(id);
+    } catch (err) {
+      console.error("Error fetching charge details:", err);
+      throw err;
+    }
+  }, []);
 
   // Clear error
   const clearError = useCallback(() => {
@@ -323,8 +267,8 @@ export const useCharge = () => {
     createCharge,
     updateCharge,
     deleteCharge,
-    markPaid,
     bulkCreateCharges,
+    getChargeWithPayments,
 
     // Refresh functions
     refetchCharges: fetchCharges,

@@ -1,4 +1,4 @@
-export type ChargeStatus = "UNPAID" | "PAID" | "OVERDUE" | "PARTIALLY_PAID";
+export type ChargeStatus = "UNPAID" | "PAID" | "PARTIALLY_PAID";
 
 export interface Charge {
   id: number;
@@ -11,10 +11,19 @@ export interface Charge {
   amount: number;
   due_date: string;
   status: ChargeStatus;
-  paid_amount: number;
-  paid_date: string | null;
   is_overdue: boolean;
   created_at: string;
+}
+
+export interface ChargePayment {
+  id: number;
+  resident: string;
+  amount: number;
+  method: string;
+  status: string;
+  reference: string | null;
+  paid_at: string | null;
+  confirmed_at: string | null;
 }
 
 export interface ChargeStats {
@@ -26,7 +35,6 @@ export interface ChargeStats {
   total_amount: number;
   paid_amount: number;
   unpaid_amount: number;
-  overdue_amount: number;
   collection_rate: number;
 }
 
@@ -37,16 +45,7 @@ export interface CreateChargeRequest {
   due_date: string;
 }
 
-export interface UpdateChargeRequest extends Partial<CreateChargeRequest> {
-  paid_amount?: number;
-  paid_date?: string;
-  status?: "UNPAID" | "PAID" | "PARTIALLY_PAID";
-}
-
-export interface MarkPaidRequest {
-  paid_amount: number;
-  paid_date?: string;
-}
+export interface UpdateChargeRequest extends Partial<CreateChargeRequest> {}
 
 export interface BulkCreateRequest {
   building_id: number;
@@ -61,10 +60,16 @@ export interface ChargeResponse {
   message: string;
 }
 
+export interface ChargeWithPaymentsResponse {
+  success: boolean;
+  data: Charge;
+  payments: ChargePayment[];
+}
+
 export interface ChargesListResponse {
   success: boolean;
-  data: Charge[];
   count: number;
+  data: Charge[];
 }
 
 export interface ChargeStatsResponse {
@@ -75,13 +80,6 @@ export interface ChargeStatsResponse {
 export interface BulkCreateResponse {
   success: boolean;
   message: string;
-  data: Charge[];
-}
-
-export interface MarkPaidResponse {
-  success: boolean;
-  message: string;
-  data: Charge;
 }
 
 export interface DeleteChargeResponse {
@@ -94,4 +92,5 @@ export interface ChargeFilters {
   building_id?: number;
   apartment_id?: number;
   overdue?: boolean;
+  search?: string;
 }

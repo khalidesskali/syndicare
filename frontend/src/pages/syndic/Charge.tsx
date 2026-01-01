@@ -23,7 +23,6 @@ const Charge: React.FC = () => {
     createCharge,
     updateCharge,
     deleteCharge,
-    markPaid,
     bulkCreateCharges,
     fetchFilteredCharges,
     refetchStats,
@@ -48,13 +47,9 @@ const Charge: React.FC = () => {
   const [selectedCharge, setSelectedCharge] = useState<Charge | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>();
-
-  const handleMarkPaid = async (chargeId: number) => {
-    await markPaid(chargeId, {
-      paid_amount: charges.find((c) => c.id === chargeId)?.amount || 0,
-    });
-  };
+  const [buildingFilter, setBuildingFilter] = useState<number | undefined>();
+  const [apartmentFilter, setApartmentFilter] = useState<number | undefined>();
+  const [overdueFilter, setOverdueFilter] = useState(false);
 
   const handleDeleteCharge = (charge: Charge) => {
     setSelectedCharge(charge);
@@ -77,7 +72,9 @@ const Charge: React.FC = () => {
   const handleClearFilters = async () => {
     setSearchTerm("");
     setStatusFilter("all");
-    setDateRange(undefined);
+    setBuildingFilter(undefined);
+    setApartmentFilter(undefined);
+    setOverdueFilter(false);
     await fetchFilteredCharges({});
   };
 
@@ -86,29 +83,31 @@ const Charge: React.FC = () => {
     await fetchFilteredCharges({
       status: statusFilter !== "all" ? statusFilter : undefined,
       search: searchTerm.trim() || undefined,
-      dateFrom: dateRange?.from
-        ? dateRange.from.toISOString().split("T")[0]
-        : undefined,
-      dateTo: dateRange?.to
-        ? dateRange.to.toISOString().split("T")[0]
-        : undefined,
+      building_id: buildingFilter,
+      apartment_id: apartmentFilter,
+      overdue: overdueFilter || undefined,
     });
+    await refetchStats();
   };
 
   const handleSearch = useCallback(async () => {
     const filters = {
       status: statusFilter !== "all" ? statusFilter : undefined,
       search: searchTerm.trim() || undefined,
-      dateFrom: dateRange?.from
-        ? dateRange.from.toISOString().split("T")[0]
-        : undefined,
-      dateTo: dateRange?.to
-        ? dateRange.to.toISOString().split("T")[0]
-        : undefined,
+      building_id: buildingFilter,
+      apartment_id: apartmentFilter,
+      overdue: overdueFilter || undefined,
     };
 
     await fetchFilteredCharges(filters);
-  }, [statusFilter, searchTerm, dateRange, fetchFilteredCharges]);
+  }, [
+    statusFilter,
+    searchTerm,
+    buildingFilter,
+    apartmentFilter,
+    overdueFilter,
+    fetchFilteredCharges,
+  ]);
 
   // Fetch initial data on mount
   useEffect(() => {
@@ -137,8 +136,14 @@ const Charge: React.FC = () => {
             onSearchChange={setSearchTerm}
             statusFilter={statusFilter}
             onStatusChange={setStatusFilter}
-            dateRange={dateRange}
-            onDateRangeChange={setDateRange}
+            buildingFilter={buildingFilter}
+            onBuildingChange={setBuildingFilter}
+            apartmentFilter={apartmentFilter}
+            onApartmentChange={setApartmentFilter}
+            overdueFilter={overdueFilter}
+            onOverdueChange={setOverdueFilter}
+            buildings={buildings}
+            apartments={transformedApartments}
             onSearch={handleSearch}
             onClearFilters={handleClearFilters}
           />
@@ -147,7 +152,6 @@ const Charge: React.FC = () => {
           <ChargeTable
             charges={charges}
             loading={loading}
-            onMarkAsPaid={handleMarkPaid}
             onEditCharge={handleEditCharge}
             onDeleteCharge={handleDeleteCharge}
           />

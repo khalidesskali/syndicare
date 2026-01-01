@@ -7,12 +7,11 @@ import type {
   ChargeStatsResponse,
   BulkCreateRequest,
   BulkCreateResponse,
-  MarkPaidRequest,
-  MarkPaidResponse,
   ChargesListResponse,
   CreateChargeRequest,
   DeleteChargeResponse,
   UpdateChargeRequest,
+  ChargeWithPaymentsResponse,
 } from "../types/charge";
 
 const chargeAPI = {
@@ -26,6 +25,7 @@ const chargeAPI = {
     if (filters?.apartment_id)
       params.append("apartment_id", filters.apartment_id.toString());
     if (filters?.overdue) params.append("overdue", filters.overdue.toString());
+    if (filters?.search) params.append("search", filters.search);
 
     const response = await axiosInstance.get<ChargesListResponse>(
       `syndic/charges/?${params.toString()}`
@@ -33,12 +33,17 @@ const chargeAPI = {
     return response.data.data;
   },
 
-  // Get charge by ID
-  getChargeById: async (id: number): Promise<Charge> => {
-    const response = await axiosInstance.get<ChargeResponse>(
+  // Get charge by ID with payments
+  getChargeById: async (
+    id: number
+  ): Promise<{ charge: Charge; payments: any[] }> => {
+    const response = await axiosInstance.get<ChargeWithPaymentsResponse>(
       `syndic/charges/${id}/`
     );
-    return response.data.data;
+    return {
+      charge: response.data.data,
+      payments: response.data.payments || [],
+    };
   },
 
   // Create new charge
@@ -50,20 +55,8 @@ const chargeAPI = {
     return response.data;
   },
 
-  // Update charge
+  // Update charge (using PATCH for partial updates)
   updateCharge: async (
-    id: number,
-    data: UpdateChargeRequest
-  ): Promise<ChargeResponse> => {
-    const response = await axiosInstance.put<ChargeResponse>(
-      `syndic/charges/${id}/`,
-      data
-    );
-    return response.data;
-  },
-
-  // Partial update charge
-  partialUpdateCharge: async (
     id: number,
     data: UpdateChargeRequest
   ): Promise<ChargeResponse> => {
@@ -78,18 +71,6 @@ const chargeAPI = {
   deleteCharge: async (id: number): Promise<DeleteChargeResponse> => {
     const response = await axiosInstance.delete<DeleteChargeResponse>(
       `syndic/charges/${id}/`
-    );
-    return response.data;
-  },
-
-  // Mark charge as paid
-  markPaid: async (
-    id: number,
-    data: MarkPaidRequest
-  ): Promise<MarkPaidResponse> => {
-    const response = await axiosInstance.post<MarkPaidResponse>(
-      `syndic/charges/${id}/mark_paid/`,
-      data
     );
     return response.data;
   },

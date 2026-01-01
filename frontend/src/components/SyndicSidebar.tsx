@@ -39,7 +39,9 @@ const SyndicSidebar: React.FC<SyndicSidebarProps> = ({ isOpen }) => {
     },
     {
       title: "Financial",
-      items: [{ name: "Charges", icon: DollarSign, path: "/syndic/charges" }],
+      items: [
+        { name: "Monthly Fees", icon: DollarSign, path: "/syndic/charges" },
+      ],
     },
     {
       title: "Community",
