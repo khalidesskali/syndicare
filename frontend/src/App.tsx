@@ -4,7 +4,6 @@ import RoleBasedRoute from "./components/RoleBasedRoute";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import SyndicDashboard from "./pages/SyndicDashboard";
-import ResidentDashboard from "./pages/ResidentDashboard";
 import RoleRedirect from "./components/RoleRedirect";
 import { useAuth } from "./context/AuthContext";
 import Syndics from "./pages/admin/Synidc";
@@ -16,6 +15,13 @@ import Charge from "./pages/syndic/Charge";
 import ReunionPage from "./pages/syndic/Reunion";
 import ApartmentPage from "./pages/syndic/Apartment";
 import ComplaintPage from "./pages/syndic/Complaint";
+import ResidentLayout from "./layouts/ResidentLayout";
+import Dashboard from "./pages/resident/Dashboard";
+import Charges from "./pages/resident/Charges";
+import ResidentPayments from "./pages/resident/Payments";
+import Reclamations from "./pages/resident/Reclamations";
+import Announcements from "./pages/resident/Announcements";
+import Profile from "./pages/resident/Profile";
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -146,7 +152,69 @@ function App() {
         element={
           <ProtectedRoute>
             <RoleBasedRoute allowedRoles={["RESIDENT"]}>
-              <ResidentDashboard />
+              <ResidentLayout>
+                <Dashboard />
+              </ResidentLayout>
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resident/charges"
+        element={
+          <ProtectedRoute>
+            <RoleBasedRoute allowedRoles={["RESIDENT"]}>
+              <ResidentLayout>
+                <Charges />
+              </ResidentLayout>
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resident/payments"
+        element={
+          <ProtectedRoute>
+            <RoleBasedRoute allowedRoles={["RESIDENT"]}>
+              <ResidentLayout>
+                <ResidentPayments />
+              </ResidentLayout>
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resident/reclamations"
+        element={
+          <ProtectedRoute>
+            <RoleBasedRoute allowedRoles={["RESIDENT"]}>
+              <ResidentLayout>
+                <Reclamations />
+              </ResidentLayout>
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resident/announcements"
+        element={
+          <ProtectedRoute>
+            <RoleBasedRoute allowedRoles={["RESIDENT"]}>
+              <ResidentLayout>
+                <Announcements />
+              </ResidentLayout>
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resident/profile"
+        element={
+          <ProtectedRoute>
+            <RoleBasedRoute allowedRoles={["RESIDENT"]}>
+              <ResidentLayout>
+                <Profile />
+              </ResidentLayout>
             </RoleBasedRoute>
           </ProtectedRoute>
         }
