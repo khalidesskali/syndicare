@@ -7,8 +7,8 @@ from ..permissions import IsAdmin, IsSyndic, IsResident
 from django.db.models import Sum, Count
 from django.utils import timezone
 from datetime import timedelta
-from ..models import User, Subscription, Payment, Immeuble, Appartement, Reclamation, Reunion, Charge, ResidentProfile
-
+from ..models import User, Subscription, Payment, Immeuble, Appartement, Reclamation, Reunion, Charge, ResidentProfile, ResidentPayment
+from ..serializers import ChargeSerializer
 
 User = get_user_model()
 
@@ -311,9 +311,63 @@ def syndic_dashboard(request):
 @permission_classes([IsResident])
 def resident_dashboard(request):
     """
-    Resident dashboard endpoint
+    Resident Dashboard Overview
+    Supports residents owning multiple apartments
     """
+
+    user = request.user
+    today = timezone.now().date()
+
+    # Get all apartments linked to the resident
+    apartments = user.appartements.all()  # adjust related_name if different
+
+    if not apartments.exists():
+        return Response({
+            'success': False,
+            'message': 'Resident is not linked to any apartment'
+        }, status=400)
+
+    # Charges for all resident apartments
+    charges_qs = Charge.objects.filter(appartement__in=apartments)
+
+    # Total unpaid amount (UNPAID + PARTIALLY_PAID)
+    total_unpaid = charges_qs.filter(
+        status__in=['UNPAID', 'PARTIALLY_PAID']
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    # Overdue charges count
+    overdue_count = charges_qs.filter(
+        status='UNPAID',
+        due_date__lt=today
+    ).count()
+
+    # Last payment across all apartments
+    last_payment = ResidentPayment.objects.filter(
+        resident=user,
+        appartement__in=apartments
+    ).select_related('charge').order_by('-created_at').first()
+
+    last_payment_data = None
+    if last_payment:
+        last_payment_data = {
+            'amount': float(last_payment.amount),
+            'date': last_payment.created_at.date().isoformat(),
+            'reference': last_payment.reference,
+            'charge_description': last_payment.charge.description,
+            'apartment_id': last_payment.appartement.id
+        }
+
+    # Recent charges (last 5 across all apartments)
+    recent_charges = charges_qs.order_by('-created_at')[:5]
+    recent_charges_data = ChargeSerializer(recent_charges, many=True).data
+
     return Response({
-        'message': 'Welcome to Resident Dashboard',
-        'user': UserSerializer(request.user).data
+        'success': True,
+        'data': {
+            'apartments_count': apartments.count(),
+            'total_unpaid': float(total_unpaid),
+            'overdue_charges': overdue_count,
+            'last_payment': last_payment_data,
+            'recent_charges': recent_charges_data
+        }
     })

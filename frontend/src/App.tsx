@@ -11,12 +11,12 @@ import SubscriptionPlans from "./pages/admin/SubscriptionPlans";
 import Payments from "./pages/admin/Payments";
 import Buildings from "./pages/syndic/Buildings";
 import Residents from "./pages/syndic/Residents";
-import Charge from "./pages/syndic/Charge";
+import * as ChargeModule from "./pages/syndic/Charge";
 import ReunionPage from "./pages/syndic/Reunion";
 import ApartmentPage from "./pages/syndic/Apartment";
 import ComplaintPage from "./pages/syndic/Complaint";
 import ResidentLayout from "./layouts/ResidentLayout";
-import Dashboard from "./pages/resident/Dashboard";
+import ResidentDashboard from "./pages/ResidentDashboard";
 import Charges from "./pages/resident/Charges";
 import ResidentPayments from "./pages/resident/Payments";
 import Reclamations from "./pages/resident/Reclamations";
@@ -111,7 +111,7 @@ function App() {
         element={
           <ProtectedRoute>
             <RoleBasedRoute allowedRoles={["SYNDIC"]}>
-              <Charge />
+              <ChargeModule.default />
             </RoleBasedRoute>
           </ProtectedRoute>
         }
@@ -153,7 +153,7 @@ function App() {
           <ProtectedRoute>
             <RoleBasedRoute allowedRoles={["RESIDENT"]}>
               <ResidentLayout>
-                <Dashboard />
+                <ResidentDashboard />
               </ResidentLayout>
             </RoleBasedRoute>
           </ProtectedRoute>

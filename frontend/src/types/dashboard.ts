@@ -19,8 +19,26 @@ export interface DashboardStats {
   has_valid_subscription: boolean;
 }
 
+export interface ResidentDashboardStats {
+  total_unpaid: number;
+  overdue_charges: number;
+  last_payment: {
+    amount: number;
+    date: string;
+    reference: string;
+    charge_description: string;
+  } | null;
+  recent_charges: any[];
+}
+
 export interface DashboardResponse {
   success: boolean;
   data: DashboardStats;
+  message?: string;
+}
+
+export interface ResidentDashboardResponse {
+  success: boolean;
+  data: ResidentDashboardStats;
   message?: string;
 }

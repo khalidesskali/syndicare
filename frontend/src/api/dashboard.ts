@@ -1,5 +1,8 @@
 import axiosInstance from "./axios";
-import type { DashboardResponse } from "../types/dashboard";
+import type {
+  DashboardResponse,
+  ResidentDashboardResponse,
+} from "../types/dashboard";
 
 export const dashboardAPI = {
   /**
@@ -7,6 +10,14 @@ export const dashboardAPI = {
    */
   getDashboardStats: async (): Promise<DashboardResponse> => {
     const response = await axiosInstance.get("/syndic/dashboard/");
+    return response.data;
+  },
+
+  /**
+   * Fetch resident dashboard statistics
+   */
+  getResidentDashboardStats: async (): Promise<ResidentDashboardResponse> => {
+    const response = await axiosInstance.get("/resident/dashboard/");
     return response.data;
   },
 };
