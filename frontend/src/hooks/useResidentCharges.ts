@@ -109,13 +109,16 @@ export const useResidentCharges = () => {
     const overdueCharges = charges.filter((c) => c.status === "OVERDUE");
     const paidCharges = charges.filter((c) => c.status === "PAID");
 
-    const totalAmount = charges.reduce((sum, charge) => sum + charge.amount, 0);
+    const totalAmount = charges.reduce(
+      (sum, charge) => sum + Number(charge.amount),
+      0
+    );
     const unpaidAmount = [...unpaidCharges, ...overdueCharges].reduce(
-      (sum, charge) => sum + charge.amount,
+      (sum, charge) => sum + Number(charge.amount),
       0
     );
     const paidAmount = paidCharges.reduce(
-      (sum, charge) => sum + charge.amount,
+      (sum, charge) => sum + Number(charge.amount),
       0
     );
 

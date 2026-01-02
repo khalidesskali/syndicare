@@ -231,18 +231,20 @@ const Charges: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="text-center p-4 border rounded-lg">
               <p className="text-sm text-muted-foreground">Total Charges</p>
-              <p className="text-2xl font-bold">{stats.totalAmount} MAD</p>
+              <p className="text-2xl font-bold">
+                {stats.totalAmount.toFixed(2)} MAD
+              </p>
             </div>
             <div className="text-center p-4 border rounded-lg">
               <p className="text-sm text-muted-foreground">Unpaid Amount</p>
               <p className="text-2xl font-bold text-yellow-600">
-                {stats.unpaidAmount} MAD
+                {stats.unpaidAmount.toFixed(2)} MAD
               </p>
             </div>
             <div className="text-center p-4 border rounded-lg">
               <p className="text-sm text-muted-foreground">Paid Amount</p>
               <p className="text-2xl font-bold text-green-600">
-                {stats.paidAmount} MAD
+                {stats.paidAmount.toFixed(2)} MAD
               </p>
             </div>
           </div>
