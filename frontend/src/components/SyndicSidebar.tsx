@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Shield,
   Home,
+  CreditCard,
 } from "lucide-react";
 
 interface SyndicSidebarProps {
@@ -41,6 +42,7 @@ const SyndicSidebar: React.FC<SyndicSidebarProps> = ({ isOpen }) => {
       title: "Financial",
       items: [
         { name: "Monthly Fees", icon: DollarSign, path: "/syndic/charges" },
+        { name: "Payments", icon: CreditCard, path: "/syndic/payments" },
       ],
     },
     {

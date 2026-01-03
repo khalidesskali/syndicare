@@ -15,6 +15,7 @@ import * as ChargeModule from "./pages/syndic/Charge";
 import ReunionPage from "./pages/syndic/Reunion";
 import ApartmentPage from "./pages/syndic/Apartment";
 import ComplaintPage from "./pages/syndic/Complaint";
+import SyndicPayments from "./pages/syndic/Payments";
 import ResidentLayout from "./layouts/ResidentLayout";
 import ResidentDashboard from "./pages/ResidentDashboard";
 import Charges from "./pages/resident/Charges";
@@ -142,6 +143,16 @@ function App() {
           <ProtectedRoute>
             <RoleBasedRoute allowedRoles={["SYNDIC"]}>
               <ComplaintPage />
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/syndic/payments"
+        element={
+          <ProtectedRoute>
+            <RoleBasedRoute allowedRoles={["SYNDIC"]}>
+              <SyndicPayments />
             </RoleBasedRoute>
           </ProtectedRoute>
         }

@@ -771,6 +771,37 @@ class ResidentPaymentSerializer(serializers.ModelSerializer):
 
         return data
 
+class SyndicPaymentSerializer(serializers.ModelSerializer):
+    """Detailed serializer for syndic payments with apartment and resident details"""
+    apartment_number = serializers.CharField(source='appartement.number', read_only=True)
+    building_name = serializers.CharField(source='appartement.immeuble.name', read_only=True)
+    resident_email = serializers.EmailField(source='appartement.resident.email', read_only=True)
+    resident_name = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ResidentPayment
+        fields = [
+            'id',
+            'charge',
+            'appartement',
+            'amount',
+            'payment_method',
+            'reference',
+            'paid_at',
+            'status',
+            'created_at',
+            'apartment_number',
+            'building_name',
+            'resident_email',
+            'resident_name',
+        ]
+        read_only_fields = ['status', 'created_at']
+    
+    def get_resident_name(self, obj):
+        if obj.appartement.resident:
+            return f"{obj.appartement.resident.first_name} {obj.appartement.resident.last_name}".strip()
+        return None
+
 class ResidentPaymentCreateSerializer(serializers.Serializer):
     amount = serializers.DecimalField(max_digits=10, decimal_places=2)
     payment_method = serializers.ChoiceField(
