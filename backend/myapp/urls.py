@@ -20,6 +20,7 @@ from .views import (
     AppartementViewSet,
     ResidentViewSet,
     ReclamationViewSet,
+    ResidentReclamationViewSet,
     ReunionViewSet,
     ChargeViewSet,
     ResidentPaymentViewSet,
@@ -44,6 +45,7 @@ router.register(r'syndic/charges', ChargeViewSet, basename='syndic-charge')
 
 # Resident endpoints
 router.register(r'resident/payments', ResidentPaymentViewSet, basename='resident-payment')
+router.register(r'resident/reclamations', ResidentReclamationViewSet, basename='resident-reclamation')
 router.register(
     r'resident/charges',
     ResidentChargeViewSet,

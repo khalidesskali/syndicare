@@ -158,7 +158,7 @@ export function ComplaintTable({
                         Apt {complaint.appartement.number}
                       </div>
                       <div className="text-xs text-slate-500">
-                        {complaint.appartement.immeuble.name}
+                        {complaint.appartement.immeuble?.name}
                       </div>
                     </div>
                   </div>

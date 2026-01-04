@@ -148,7 +148,7 @@ export function ComplaintDetailsModal({
               </Label>
               <p className="mt-1 text-slate-900">
                 Apt {complaint.appartement.number} -{" "}
-                {complaint.appartement.immeuble.name}
+                {complaint.appartement.immeuble?.name}
               </p>
             </div>
           </div>

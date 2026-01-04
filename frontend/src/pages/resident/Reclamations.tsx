@@ -1,97 +1,90 @@
-import React, { useState } from "react";
-import { Plus, AlertCircle, Clock, CheckCircle, XCircle } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import ReclamationForm from "@/components/resident/ReclamationForm";
+import ReclamationList from "@/components/resident/ReclamationList";
+import ReclamationStats from "@/components/resident/ReclamationStats";
+import { SuccessMessage } from "@/components/ui/success-message";
+import { ErrorMessage } from "@/components/ui/error-message";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { mockReclamations } from "../../data/mockData";
-import type { Reclamation } from "../../types/residentPortal";
+  reclamationApi,
+  type Reclamation,
+  type ReclamationStatistics,
+} from "@/services/reclamationApi";
 
 const Reclamations: React.FC = () => {
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    priority: "MEDIUM" as Reclamation["priority"],
-  });
+  const [reclamations, setReclamations] = useState<Reclamation[]>([]);
+  const [statistics, setStatistics] = useState<ReclamationStatistics | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const getStatusIcon = (status: Reclamation["status"]) => {
-    const icons = {
-      PENDING: Clock,
-      IN_PROGRESS: AlertCircle,
-      RESOLVED: CheckCircle,
-      REJECTED: XCircle,
-    };
-    return icons[status];
+  const fetchReclamations = async () => {
+    try {
+      setError(null);
+      const response = await reclamationApi.getReclamations();
+      setReclamations(response.data);
+    } catch (err) {
+      console.error("Failed to fetch reclamations:", err);
+      setError("Failed to load reclamations");
+      setErrorMessage("Failed to load your reclamations. Please try again.");
+    }
   };
 
-  const getStatusBadge = (status: Reclamation["status"]) => {
-    const variants = {
-      PENDING: "secondary",
-      IN_PROGRESS: "default",
-      RESOLVED: "default",
-      REJECTED: "destructive",
-    } as const;
+  const fetchStatistics = async () => {
+    try {
+      const response = await reclamationApi.getStatistics();
+      setStatistics(response.data);
+    } catch (err) {
+      console.error("Failed to fetch statistics:", err);
+    }
+  };
 
-    const Icon = getStatusIcon(status);
+  const loadData = async () => {
+    setLoading(true);
+    await Promise.all([fetchReclamations(), fetchStatistics()]);
+    setLoading(false);
+  };
 
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleReclamationCreated = () => {
+    // Refresh data when a new reclamation is created
+    loadData();
+    setSuccessMessage("Reclamation submitted successfully!");
+  };
+
+  const handleReclamationError = (error: string) => {
+    setErrorMessage(error);
+  };
+
+  const handleReclamationClick = (reclamation: Reclamation) => {
+    // TODO: Navigate to reclamation details or show details modal
+    console.log("Reclamation clicked:", reclamation);
+  };
+
+  if (loading) {
     return (
-      <Badge variant={variants[status]} className="flex items-center">
-        <Icon className="h-3 w-3 mr-1" />
-        {status.replace("_", " ")}
-      </Badge>
+      <div className="space-y-6">
+        <div className="flex justify-center items-center py-8">
+          <div className="text-muted-foreground">Loading reclamations...</div>
+        </div>
+      </div>
     );
-  };
+  }
 
-  const getPriorityBadge = (priority: Reclamation["priority"]) => {
-    const variants = {
-      LOW: "outline",
-      MEDIUM: "secondary",
-      HIGH: "destructive",
-    } as const;
-
-    return <Badge variant={variants[priority]}>{priority}</Badge>;
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("New reclamation:", formData);
-    // Reset form
-    setFormData({ title: "", description: "", priority: "MEDIUM" });
-    setShowCreateForm(false);
-  };
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-center items-center py-8">
+          <div className="text-red-600">Error: {error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -102,168 +95,28 @@ const Reclamations: React.FC = () => {
             Submit and track your complaints and requests
           </p>
         </div>
-        <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
-          <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-              <Plus className="h-4 w-4 mr-2" />
-              New Reclamation
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
-            <form onSubmit={handleSubmit}>
-              <DialogHeader>
-                <DialogTitle>Create New Reclamation</DialogTitle>
-                <DialogDescription>
-                  Submit a new complaint or request to the building management.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
-                    placeholder="Brief description of the issue"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    placeholder="Detailed description of the issue"
-                    rows={4}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="priority">Priority</Label>
-                  <Select
-                    value={formData.priority}
-                    onValueChange={(value) =>
-                      setFormData({
-                        ...formData,
-                        priority: value as Reclamation["priority"],
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="LOW">Low</SelectItem>
-                      <SelectItem value="MEDIUM">Medium</SelectItem>
-                      <SelectItem value="HIGH">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button
-                  type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Submit
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <ReclamationForm
+          onReclamationCreated={handleReclamationCreated}
+          onError={handleReclamationError}
+          loading={loading}
+        />
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Reclamations
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{mockReclamations.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
-              {mockReclamations.filter((r) => r.status === "PENDING").length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {
-                mockReclamations.filter((r) => r.status === "IN_PROGRESS")
-                  .length
-              }
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Resolved</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {mockReclamations.filter((r) => r.status === "RESOLVED").length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {statistics && <ReclamationStats statistics={statistics} />}
 
       {/* Reclamations List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Reclamations</CardTitle>
-          <CardDescription>
-            Track the status of your submitted reclamations
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {mockReclamations.map((reclamation) => (
-              <div
-                key={reclamation.id}
-                className="border rounded-lg p-6 hover:bg-slate-50 transition-colors"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-lg font-semibold text-slate-900">
-                        {reclamation.title}
-                      </h3>
-                      {getStatusBadge(reclamation.status)}
-                      {getPriorityBadge(reclamation.priority)}
-                    </div>
-                    <p className="text-slate-600 mb-3 leading-relaxed">
-                      {reclamation.description}
-                    </p>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <span>
-                        Created on {formatDate(reclamation.createdDate)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <ReclamationList
+        reclamations={reclamations}
+        onReclamationClick={handleReclamationClick}
+      />
+
+      {/* Success and Error Messages */}
+      {successMessage && (
+        <SuccessMessage message={successMessage} duration={5000} />
+      )}
+
+      {errorMessage && <ErrorMessage message={errorMessage} duration={5000} />}
     </div>
   );
 };
