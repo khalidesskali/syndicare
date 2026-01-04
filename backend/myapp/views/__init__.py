@@ -65,6 +65,10 @@ from .Syndic_payment import (
     SyndicPaymentViewSet
 )
 
+from .chatbot_view import (
+    chatbot_message
+)
+
 __all__ = [
     # Authentication views
     'CustomTokenObtainPairView',
@@ -98,4 +102,7 @@ __all__ = [
     'ResidentPaymentViewSet',
     'ResidentChargeViewSet',
     'SyndicPaymentViewSet',
+    
+    # Chatbot views
+    'chatbot_message',
 ]

@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "syndic-app-483314",
+  "private_key_id": "4b0e84a5afef411e39e4f80410b9996ae4f654ec",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDJRGP0VZEMs7Py\ndJQjhSEjSmPdIk0eCWD+U4IhWZIjKQX6usyf9y4uzVPsuilQqjlKhpEE2qmINDHL\n86o4FwL04PAJYqxo+g8nxib29J47rHE5UWK3869SC/d3CPPbaujf85PX7wivsH6h\n6ItGMvBKeg9e03bE/mCVskyHwnP7s1ZeiZ+FcveXMoXO80n4gYrwTBcW/crZXn6Z\nesQHYiKuECChYyPM9oMqBGNaKqdvnP/3pkWUTnLHSMN4DUOvcLxCZxWTwePDCDLW\n6taot8HsoufPcMXuyh3CvQlR1csrI29hwUnUIkPrTAFLufT24JGYr9MLx2kLSE4j\nW/LnYglTAgMBAAECggEABrRnvNGTTdNrgMqWNMJQL32Tt6yKc4aBQkR3gIAcK8R6\n4oNeiOWr42GlR6zCVS5jTv90mhWYS2VE7QDNAHLwmKyPOOc3y+qonpaUFB39N3FJ\nkRmlxDyZI1td5XIMgMuEi0SKyq+EoCjgNXYqgMgpoRGErMM2oN4oflQjBuxY/yvg\nosoD6/iO8N9IbU0ntKMD8pvKrWc5PN7FW0u3/NmYc+7lYLLMZtzpwq4pOXZPmUlp\nWbNtLWPIuNhznadyDwFUKcYKrofoeVqUAkrCsmwyjh7Z5sXvE/2XOE8cDhrwN/jU\nk58I6Zp/gwqDUjwQcaVoLfse5OCe3zC+2rY4H+hBgQKBgQD7tg6VwB/29nDAg5Sq\nPubLTWsNOj9szjlWVxrV4jrGnzEM7d0gn4jaom4WxSd5JppfItmQl8sDkD0s/bPD\nymzHvhE3FK6k22Xws3wZcYI28CxmIHS8xk9m0z1J4KdMWlOaVqP2jZ8RdPTPtPdC\n8nzy68cf7CchGaQ1tyBSo2jbAwKBgQDMsk0JQagGjsQ+tM+jLGMNZk9khw/zj7Gb\nZl1LOqM4U21SmYSp9aV+jTmI8b+b5jThkYrkW21sa7ibq/1qIBeQh6Q9FKzsxPFF\nmd4o9IxLNPUkz74X8Q39oY2ush7WpzndJtVQAtpOnJBrqWgLfw9CuOeQsk3Ckni0\nTN6En9wfcQKBgQD3p8On4VVR5l0/fPbrnmHzy6M1a4b15d2SLrevkxvjSsO3Bd3Y\neD7tZn1MmARjdfDTA/XuBvtu8R7Pwnp5fBQVXtOPTyEaAOfGsMG8QussZJg6j1ps\nVe3PrK0ToB7ax9CT/QTr06GbSmiIaHQTgYQgeoz7wp0pOxJO63O4+yBywwKBgAOS\nuTWIJ961b0eI8Hbwt2nsd0ZR9T1TLM6Bou9FPsQk8KuYcnBlEVZ8MJzrW2TlR9cI\nK1yBHA/gcYCGKA5KMR8cvwkx6zLW3T9RyEb+vdQyQHU8Cx1v38alo0uBYHhuwtvR\nabfT1Ou6X+sBMgfBWAraH3CvLBxRYjoDfX7jK3yBAoGACbhSyJfSAUuAEUsvQiTe\nrzsnzNtKXKoIRl5MSzcImptAql61pQuWZMfMusLaRGXACZmhdYgl90CpOALs8WlG\nQlmC5AeYu5nxJb4XPRN0b+6wE5lsqqokd+gMMFmZYzEB2s98vNYDhvLtES4mHSST\nBm2DKpbLCyKx1O3s2PNqRtA=\n-----END PRIVATE KEY-----\n",
+  "client_email": "syndic-api@syndic-app-483314.iam.gserviceaccount.com",
+  "client_id": "112702483849923180810",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/syndic-api%40syndic-app-483314.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
