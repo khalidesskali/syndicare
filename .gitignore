@@ -38,3 +38,5 @@ Thumbs.db
 
 # Secret key and sensitive data
 secrets.json
+
+dialogflow.json

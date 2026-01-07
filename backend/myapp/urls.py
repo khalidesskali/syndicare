@@ -26,7 +26,6 @@ from .views import (
     ResidentPaymentViewSet,
     ResidentChargeViewSet,
     SyndicPaymentViewSet,
-    chatbot_message
 ) 
 
 router = DefaultRouter()
@@ -76,8 +75,7 @@ urlpatterns = [
     path('syndic/dashboard/', syndic_dashboard, name='syndic_dashboard'),
     path('resident/dashboard/', resident_dashboard, name='resident_dashboard'),
     
-    # Chatbot endpoint
-    path('chatbot/message/', chatbot_message, name='chatbot_message'),
+    path("chatbot/", include("chatbot.urls")),
 
     path('', include(router.urls)),
 ]

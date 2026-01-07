@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_yasg', 
     'myapp',
+    'chatbot'
 ]
 
 # Swagger settings

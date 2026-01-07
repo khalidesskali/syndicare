@@ -69,9 +69,6 @@ from .Syndic_payment import (
     SyndicPaymentViewSet
 )
 
-from .chatbot_view import (
-    chatbot_message
-)
 
 __all__ = [
     # Authentication views
