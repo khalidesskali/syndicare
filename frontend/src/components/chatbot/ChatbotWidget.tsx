@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import ChatbotButton from "./ChatbotButton";
 import ChatbotPanel from "./ChatbotPanel";
+import { chatbotApi } from "@/services/chatbotApi";
 import type { Message } from "./types";
 
 const ChatbotWidget: React.FC = () => {
@@ -33,26 +34,7 @@ const ChatbotWidget: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  const generateBotResponse = (userMessage: string): string => {
-    const lowerMessage = userMessage.toLowerCase();
-
-    if (lowerMessage.includes("charge") && lowerMessage.includes("calculat")) {
-      return "Charges are calculated based on your apartment's share of common expenses, including maintenance, utilities, and building management costs. Each charge is proportionally divided according to your apartment's coefficient.";
-    } else if (
-      lowerMessage.includes("pay") &&
-      lowerMessage.includes("charge")
-    ) {
-      return "You can pay your charges through several methods: bank transfer, online payment portal, or directly at the management office. Payments are typically due within 30 days of the charge issuance date.";
-    } else if (lowerMessage.includes("overdue")) {
-      return "Overdue means a charge payment has passed its due date without being paid. Overdue charges may incur late fees and could affect your standing with the building management.";
-    } else if (lowerMessage.includes("complaint")) {
-      return "To submit a complaint, navigate to the 'Complaints' section in your dashboard, click 'New Complaint', fill in the details including the issue type and description, and submit. You'll receive updates on the resolution progress.";
-    } else {
-      return "I understand your question. For more specific information about this topic, you can check the relevant section in your dashboard or contact the building management directly. Is there anything else I can help you with?";
-    }
-  };
-
-  const handleSendMessage = (text: string) => {
+  const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
 
     const userMessage: Message = {
@@ -66,17 +48,31 @@ const ChatbotWidget: React.FC = () => {
     setInputValue("");
     setIsTyping(true);
 
-    setTimeout(() => {
+    try {
+      const response = await chatbotApi.sendMessage(text.trim());
+
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: generateBotResponse(text),
+        text: response.reply || "Sorry, I didn't understand that.",
         sender: "bot",
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, botResponse]);
+    } catch (error) {
+      console.error("Chatbot error:", error);
+
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "Sorry, I'm having trouble connecting. Please try again later.",
+        sender: "bot",
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, errorResponse]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleQuickQuestion = (question: string) => {
