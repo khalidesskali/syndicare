@@ -1,14 +1,16 @@
 import { Navigate } from "react-router-dom";
+import Landing from "../pages/Landing";
 import { useAuth } from "../context/AuthContext";
 
-const RoleRedirect = () => {
-  const { user, isAuthenticated, loading } = useAuth();
+const HomeRedirect: React.FC = () => {
+  const { isAuthenticated, user } = useAuth();
 
-  if (loading) return <div>Loading...</div>;
+  // Redirect authenticated users to appropriate dashboard
+  if (!isAuthenticated) {
+    return <Landing />;
+  }
 
-  if (!isAuthenticated || !user) return <Navigate to="/login" replace />;
-
-  switch (user.role) {
+  switch (user?.role) {
     case "ADMIN":
       return <Navigate to="/admin/dashboard" replace />;
     case "SYNDIC":
@@ -16,8 +18,8 @@ const RoleRedirect = () => {
     case "RESIDENT":
       return <Navigate to="/resident/dashboard" replace />;
     default:
-      return <Navigate to="/login" replace />;
+      return <Landing />;
   }
 };
 
-export default RoleRedirect;
+export default HomeRedirect;
