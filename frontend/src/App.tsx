@@ -4,8 +4,8 @@ import RoleBasedRoute from "./components/RoleBasedRoute";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import SyndicDashboard from "./pages/SyndicDashboard";
-import RoleRedirect from "./components/RoleRedirect";
 import { useAuth } from "./context/AuthContext";
+import Landing from "./pages/Landing";
 import Syndics from "./pages/admin/Synidc";
 import SubscriptionPlans from "./pages/admin/SubscriptionPlans";
 import Payments from "./pages/admin/Payments";
@@ -230,7 +230,7 @@ function App() {
           </ProtectedRoute>
         }
       />
-      <Route path="/" element={<RoleRedirect />} />
+      <Route path="/" element={<Landing />} />
     </Routes>
   );
 }
