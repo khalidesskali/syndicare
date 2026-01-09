@@ -8,8 +8,6 @@ from ..models import User, Immeuble, Appartement, Reclamation, Charge, ResidentP
 from ..serializers import UserSerializer, ResidentProfileSerializer, ResidentSerializer, ResidentUpdateSerializer
 from ..permissions import IsSyndic
 
-
-
 class ResidentViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing residents by Syndic
@@ -26,9 +24,10 @@ class ResidentViewSet(viewsets.ModelViewSet):
         if not self.request.user or not self.request.user.is_authenticated:
             return User.objects.none()
             
-        # Return all residents (role='RESIDENT') since apartment assignment is now separate
+        # Return only residents created by this syndic
         return User.objects.filter(
-            role='RESIDENT'
+            role='RESIDENT',
+            created_by_syndic=self.request.user
         ).select_related('resident_profile').order_by('-created_at')
     
     def list(self, request, *args, **kwargs):
@@ -77,7 +76,10 @@ class ResidentViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(data=data)
         if serializer.is_valid():
+            # Set created_by_syndic after saving but before returning
             resident = serializer.save()
+            resident.created_by_syndic = request.user
+            resident.save()
             
             return Response({
                 'success': True,

@@ -38,6 +38,14 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by_syndic = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_residents',
+        limit_choices_to={'role': 'SYNDIC'}
+    )
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
