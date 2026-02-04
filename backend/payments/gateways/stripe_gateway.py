@@ -6,11 +6,23 @@ from .base import PaymentGateway
 class StripeGateway(PaymentGateway):
     def __init__(self):
         stripe.api_key = settings.STRIPE_SECRET_KEY
+
+     self.currency_multipliers = {
+         'mad': 100,  # 1 MAD = 100 centimes
+         'usd': 100,  
+         'eur': 100,  
+     }
     
-    def process_payment(self, amount: float, currency: str, **kwargs) -> Dict:
+    def _get_amount(self, amount: float, currency: str) -> int:
+        """Convert amount to the smallest currency unit."""
+        multiplier = self.currency_multipliers.get(currency.lower(), 100)
+        return int(amount * multiplier)
+    
+    
+    def process_payment(self, amount: float, currency: str = 'mad', **kwargs) -> Dict:
         try:
             payment_intent = stripe.PaymentIntent.create(
-                amount=int(amount * 100),
+                amount=self._get_amount(amount, currency),
                 currency=currency.lower(),
                 payment_method_types=['card'],
                 metadata=kwargs.get('metadata', {})
@@ -19,7 +31,8 @@ class StripeGateway(PaymentGateway):
                 'success': True,
                 'payment_id': payment_intent.id,
                 'client_secret': payment_intent.client_secret,
-                'status': payment_intent.status
+                'status': payment_intent.status,
+                'currency': currency.upper()
             }
         except stripe.error.StripeError as e:
             return {
@@ -27,7 +40,6 @@ class StripeGateway(PaymentGateway):
                 'error': str(e),
                 'status': 'failed'
             }
-    
     def get_payment_status(self, payment_id: str) -> Dict:
         try:
             payment_intent = stripe.PaymentIntent.retrieve(payment_id)
